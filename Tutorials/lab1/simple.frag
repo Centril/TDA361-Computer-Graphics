@@ -5,7 +5,9 @@ precision highp float;
 
 out vec4 fragmentColor;
 
+in vec3 outColor;
+
 void main() 
 {
-	fragmentColor = vec4(1,1,1,1);
+	fragmentColor.rbg = outColor;
 }
