@@ -56,11 +56,20 @@ void initGL()
 		//	 X      Y     Z
 		0.0f,   0.5f, 1.0f,		// v0
 		-0.5f,  -0.5f, 1.0f,	// v1
-		0.5f,  -0.5f, 1.0f		// v2
+		0.5f,  -0.5f, 1.0f,		// v2
+
+		//	 X      Y     Z
+		-1.0f, 1.0f, 1.0f,		// v0
+		0.0f,  1.0f, 1.0f,		// v1
+		-1.0f, -1.0f, 1.0f		// v2
 	};
 
 	// Define the colors for each of the three vertices of the triangle
 	const float colors[] = {
+		//  R     G		B
+		1.0f, 0.0f, 0.0f,		// Red
+		0.0f, 1.0f, 0.0f,		// Green
+		0.0f, 0.0f, 1.0f,		// Blue
 		//  R     G		B
 		1.0f, 0.0f, 0.0f,		// Red
 		0.0f, 1.0f, 0.0f,		// Green
