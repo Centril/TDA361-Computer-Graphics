@@ -9,6 +9,11 @@
 
 #include "glutil.h"
 
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
 // `vertexArrayObject' holds the data for each vertex. Data for each vertex
 // consists of positions (from positionBuffer) and color (from colorBuffer)
 // in this example.
@@ -23,7 +28,7 @@ void initGL()
 {
 	/* Initialize GLEW; this gives us access to OpenGL Extensions.
 	 */
-	glewInit();  
+	glewInit();
 
 	/* Print information about OpenGL and ensure that we've got at a context 
 	 * that supports least OpenGL 3.0. Then setup the OpenGL Debug message
@@ -31,6 +36,8 @@ void initGL()
 	 */
 	startupGLDiagnostics();
 	setupGLDebugMessages();
+
+	cout << "#1 - after setupGLDebugMessages" << endl;
 
 	/* Workaround for AMD. It might no longer be necessary, but I dunno if we
 	 * are ever going to remove it. (Consider it a piece of living history.)
@@ -189,6 +196,7 @@ void display(void)
 {
 	glClearColor(0.2,0.2,0.8,1.0);						// Set clear color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clears the color buffer and the z-buffer
+	//glFlush();
 
 	int w = glutGet((GLenum)GLUT_WINDOW_WIDTH);
 	int h = glutGet((GLenum)GLUT_WINDOW_HEIGHT);
@@ -256,6 +264,8 @@ int main(int argc, char *argv[])
 	 */
 	glutDisplayFunc(display);
 	glutKeyboardFunc(handleKeys); // standard key is pressed/released
+
+	cout << "#1 - before initGL" << endl;
 	 
 	/* Now that we should have a valid GL context, perform our OpenGL 
 	 * initialization, before we enter glutMainLoop().
@@ -265,6 +275,16 @@ int main(int argc, char *argv[])
 	/* Start the main loop. Note: depending on your GLUT version, glutMainLoop()
 	 * may never return, but only exit via std::exit(0) or a similar method.
 	 */
-	glutMainLoop();
-	return 0;          
+	cout << "#1 - before glutMainLoop" << endl;
+
+	#ifdef WIN32
+		glutMainLoop();
+	#else
+		while ( true ) {
+			glutMainLoopEvent();
+			display();
+		}
+	#endif
+
+	return 0;
 }
