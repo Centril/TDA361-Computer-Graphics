@@ -215,6 +215,13 @@ int main(int argc, char *argv[])
 	/* Start the main loop. Note: depending on your GLUT version, glutMainLoop()
 	 * may never return, but only exit via std::exit(0) or a similar method.
 	 */
-	glutMainLoop();
+	#ifdef WIN32
+		glutMainLoop();
+	#else
+		while ( true ) {
+			glutMainLoopEvent();
+			display();
+		}
+	#endif
 	return 0;          
 }
