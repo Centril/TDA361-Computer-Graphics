@@ -24,3 +24,11 @@ When zNear is 0 all z values would map to 0.
     * performance benefits: don't render until infinity in Z-axis.
     * |far - near| -> 0    ==>  the higher the precision of Z-axis coordinates.
 
+## Anisotropy:
+
+Far away repeats of the texture are rendered with
+a minified version of the texture, using the average.
+
+Result: far away pixels are less blurry, more sharp.
+
+In layman's terms, anisotropic filtering retains the "sharpness" of a texture normally lost by MIP map texture's attempts to avoid aliasing. Anisotropic filtering can therefore be said to maintain crisp texture detail at all viewing orientations while providing fast anti-aliased texture filtering.
