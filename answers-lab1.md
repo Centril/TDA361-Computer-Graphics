@@ -41,3 +41,14 @@ F-shader: once for each pixel.
 
 ## Ex6:
 
+vertexShader: glCreateShader
+fragmentShader: glCreateShader
+shaderProgram: glCreateProgram
+
++ C = glLinkProgram
++ A = glCompileShader
++ B = glCompileShader
++ 1 = glShaderSource
++ 2 = glShaderSource
++ 3 = glAttachSource
++ 4 = glAttachSource
