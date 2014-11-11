@@ -23,8 +23,11 @@ GLuint shaderProgram;
 
 // The vertexArrayObject here will hold the pointers to 
 // the vertex data (in positionBuffer) and color data per vertex (in colorBuffer)
-GLuint		positionBuffer, colorBuffer, indexBuffer, vertexArrayObject;						
-GLuint 		texture, texcoordBuffer;
+GLuint		floorPositionBuffer, floorColorBuffer, floorIndexBuffer, floorVAO;						
+GLuint 		floorTexture, floorTexcoordBuffer;
+
+GLuint 		explosionPositionBuffer, explosionColorBuffer, explosionIndexBuffer, explosionVAO;
+GLuint 		explosionTexture, explosionTexcoordBuffer;
 
 void initGL()
 {
@@ -60,6 +63,8 @@ void initGL()
 	///////////////////////////////////////////////////////////////////////////
 	// Create the floor quad
 	///////////////////////////////////////////////////////////////////////////	
+
+	{	
 	// Vertex positions
 	const float positions[] = {
 		// X Y Z
@@ -85,45 +90,36 @@ void initGL()
 		1.0f, 1.0f, 1.0f		// White
 	};
 
-
 	const int indices[] = {
 		0,1,3, // Triangle 1
 		1,2,3  // Triangle 2
 	};
 
 	// Create the buffer objects
-	glGenBuffers( 1, &positionBuffer );															// Create a handle for the vertex position buffer
-	glBindBuffer( GL_ARRAY_BUFFER, positionBuffer );											// Set the newly created buffer as the current one
+	glGenBuffers( 1, &floorPositionBuffer );															// Create a handle for the vertex position buffer
+	glBindBuffer( GL_ARRAY_BUFFER, floorPositionBuffer );											// Set the newly created buffer as the current one
 	glBufferData( GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW );			// Send the vetex position data to the current buffer
 
-	glGenBuffers(1, &texcoordBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, texcoordBuffer);
+	glGenBuffers(1, &floorTexcoordBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, floorTexcoordBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
-	glGenBuffers( 1, &colorBuffer );															// Create a handle for the vertex color buffer
-	glBindBuffer( GL_ARRAY_BUFFER, colorBuffer );										// Set the newly created buffer as the current one
-	glBufferData( GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW );			// Send the color data to the current buffer
-
-
-	glGenBuffers( 1, &indexBuffer );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexBuffer );										
+	glGenBuffers( 1, &floorIndexBuffer );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, floorIndexBuffer );										
 	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW );			
 
 	// Create the vertex array object
-	glGenVertexArrays(1, &vertexArrayObject);
-	glBindVertexArray(vertexArrayObject);
+	glGenVertexArrays(1, &floorVAO);
+	glBindVertexArray(floorVAO);
 
-	glBindBuffer( GL_ARRAY_BUFFER, positionBuffer );	
+	glBindBuffer( GL_ARRAY_BUFFER, floorPositionBuffer );	
 	glVertexAttribPointer(0, 3, GL_FLOAT, false/*normalized*/, 0/*stride*/, 0/*offset*/ );	
-	glBindBuffer( GL_ARRAY_BUFFER, colorBuffer );
-	glVertexAttribPointer(1, 3, GL_FLOAT, false/*normalized*/, 0/*stride*/, 0/*offset*/ );
-	glBindBuffer(GL_ARRAY_BUFFER, texcoordBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, floorTexcoordBuffer);
 	glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, floorIndexBuffer);
 	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
-
+	}
 	// The loadShaderProgram and linkShaderProgam functions are defined in glutil.cpp and 
 	// do exactly what we did in lab1 but are hidden for convenience
 	shaderProgram = loadShaderProgram("simple.vert", "simple.frag"); 
@@ -131,16 +127,66 @@ void initGL()
 	glBindAttribLocation(shaderProgram, 1, "color");
 	glBindAttribLocation(shaderProgram, 2, "texCoordIn");
 	glBindFragDataLocation(shaderProgram, 0, "fragmentColor");
-	linkShaderProgram(shaderProgram); 
+	linkShaderProgram(shaderProgram);
 	//**********************************************
 
+	///////////////////////////////////////////////////////////////////////////
+	// Create the explosion quad
+	///////////////////////////////////////////////////////////////////////////
+
+	{
+	// Vertex positions
+	const float positions[] = {
+		// X Y Z
+		-10.0f,   10.0f, -100.0f,    // v0
+		 10.0f,   10.0f, -100.0f,	 // v1
+		 10.0f,  -10.0f, -100.0f,    // v2
+		-10.0f,  -10.0f, -100.0f     // v3
+	};
+	const float texcoords[] = {
+		0.0f, 1.0f,		// v0
+		1.0f, 1.0f,		// v1
+		1.0f, 0.0f,		// v2
+		0.0f, 0.0f		// v3
+	};
+	const int indices[] = {
+		0,1,2, // Triangle 1
+		0,2,3  // Triangle 2
+	};
+
+	// Create the buffer objects
+	glGenBuffers( 1, &explosionPositionBuffer );															// Create a handle for the vertex position buffer
+	glBindBuffer( GL_ARRAY_BUFFER, explosionPositionBuffer );											// Set the newly created buffer as the current one
+	glBufferData( GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW );			// Send the vetex position data to the current buffer
+
+	glGenBuffers(1, &explosionTexcoordBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, explosionTexcoordBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
+	glGenBuffers( 1, &explosionIndexBuffer );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, explosionIndexBuffer );										
+	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW );			
+
+	// Create the vertex array object
+	glGenVertexArrays(1, &explosionVAO);
+	glBindVertexArray(explosionVAO);
+
+	glBindBuffer( GL_ARRAY_BUFFER, explosionPositionBuffer );	
+	glVertexAttribPointer(0, 3, GL_FLOAT, false/*normalized*/, 0/*stride*/, 0/*offset*/ );	
+	glBindBuffer(GL_ARRAY_BUFFER, explosionTexcoordBuffer);
+	glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, explosionIndexBuffer);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(2);
+	}
+
 	//************************************
-	//			Load Texture
+	//			Load Texture: Floor
 	//************************************
 
-	texture = ilutGLLoadImage("floor.jpg");
+	floorTexture = ilutGLLoadImage("floor.jpg");
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, floorTexture);
 	// repeat active texture:
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -151,6 +197,13 @@ void initGL()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f );
+
+	//************************************
+	//			Load Texture: Explosion
+	//************************************
+	explosionTexture = ilutGLLoadImage("explosion.png");
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, explosionTexture);
 }
 
 void display(void)
@@ -167,26 +220,34 @@ void display(void)
 	glDisable(GL_CULL_FACE);
 	// Disable depth testing
 	glDisable(GL_DEPTH_TEST);
+	// Enable blending.
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// Shader Program
 	glUseProgram( shaderProgram );				// Set the shader program to use for this draw call
 
 	// Set up a projection matrix
-	float4x4 projectionMatrix = perspectiveMatrix(45.0f, float(w)/float(h), 0.01f, 300.0f); 
+	float4x4 projectionMatrix = perspectiveMatrix(45.0f, float(w)/float(h), 0.01f, 300.0f);
 	// Send it to the vertex shader
 	int loc = glGetUniformLocation(shaderProgram, "projectionMatrix");
 	glUniformMatrix4fv(loc, 1, false, &projectionMatrix.c1.x);
 
-	glBindVertexArray(vertexArrayObject);
+	// Get the location of colortexture parameter of shader.
+	GLint texLoc = glGetUniformLocation( shaderProgram, "colortexture" );
 
-	// Activate & associate with texture.
+	// Draw floor with texture.
+	glBindVertexArray(floorVAO);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture( GL_TEXTURE_2D, texture );
-
+	glBindTexture( GL_TEXTURE_2D, floorTexture );
+	glUniform1i( texLoc, 0 );
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-	// Associate colortexture with texture unit 0.
-	GLint texLoc = glGetUniformLocation( shaderProgram, "colortexture" );
-	glUniform1i( texLoc, 0 );
+	// Draw explosion with texture.
+	glBindVertexArray(explosionVAO);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture( GL_TEXTURE_2D, explosionTexture );
+	glUniform1i( texLoc, 1 );
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	glUseProgram( 0 ); // "unsets" the current shader program. Not really necessary.
 
