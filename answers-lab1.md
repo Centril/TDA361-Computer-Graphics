@@ -33,3 +33,11 @@ Link order: 2, 4, 1, 3
 b) by name
 
 ... add another triangle.
+
+## Ex5:
+
+V-shader: once for each vertex.
+F-shader: once for each pixel.
+
+## Ex6:
+
