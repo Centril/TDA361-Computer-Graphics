@@ -4,3 +4,16 @@
 .scons-local-2.0.1/
 build/
 config.log
+
+#build files on Windows
+*.log
+*.tlog
+*.exe
+*.ilk
+*.opensdf
+*.sdf
+*.lastbuildstate
+*.obj
+*.idb
+*.pdb
+*.lib

@@ -23,7 +23,7 @@ GLuint shaderProgram;
 
 // The vertexArrayObject here will hold the pointers to 
 // the vertex data (in positionBuffer) and color data per vertex (in colorBuffer)
-GLuint		positionBuffer, colorBuffer, indexBuffer, vertexArrayObject;						
+GLuint		positionBuffer, texcoordBuffer, colorBuffer, indexBuffer, vertexArrayObject;						
 
 
 
@@ -70,6 +70,13 @@ void initGL()
 		 10.0f,   -10.0f, -30.0f     // v3
 	};
 
+	float texcoords[] = {
+		0.0f, 0.0f,		// v0
+		0.0f, 1.0f,		// v1
+		1.0f, 1.0f,		// v2
+		1.0f, 0.0f		// v3
+	};
+
 	// Vertex colors
 	const float colors[] = {
 		//  R     G		B
@@ -90,6 +97,10 @@ void initGL()
 	glBindBuffer( GL_ARRAY_BUFFER, positionBuffer );											// Set the newly created buffer as the current one
 	glBufferData( GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW );			// Send the vetex position data to the current buffer
 
+	glGenBuffers(1, &texcoordBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, texcoordBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
 	glGenBuffers( 1, &colorBuffer );															// Create a handle for the vertex color buffer
 	glBindBuffer( GL_ARRAY_BUFFER, colorBuffer );										// Set the newly created buffer as the current one
 	glBufferData( GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW );			// Send the color data to the current buffer
@@ -107,16 +118,19 @@ void initGL()
 	glVertexAttribPointer(0, 3, GL_FLOAT, false/*normalized*/, 0/*stride*/, 0/*offset*/ );	
 	glBindBuffer( GL_ARRAY_BUFFER, colorBuffer );
 	glVertexAttribPointer(1, 3, GL_FLOAT, false/*normalized*/, 0/*stride*/, 0/*offset*/ );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexBuffer );
+	glBindBuffer(GL_ARRAY_BUFFER, texcoordBuffer);
+	glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-
+	glEnableVertexAttribArray(2);
 
 	// The loadShaderProgram and linkShaderProgam functions are defined in glutil.cpp and 
 	// do exactly what we did in lab1 but are hidden for convenience
 	shaderProgram = loadShaderProgram("simple.vert", "simple.frag"); 
 	glBindAttribLocation(shaderProgram, 0, "position"); 	
 	glBindAttribLocation(shaderProgram, 1, "color");
+	glBindAttribLocation(shaderProgram, 2, "texCoordIn");
 	glBindFragDataLocation(shaderProgram, 0, "fragmentColor");
 	linkShaderProgram(shaderProgram); 
 	//**********************************************
