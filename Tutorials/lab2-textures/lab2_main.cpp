@@ -23,9 +23,8 @@ GLuint shaderProgram;
 
 // The vertexArrayObject here will hold the pointers to 
 // the vertex data (in positionBuffer) and color data per vertex (in colorBuffer)
-GLuint		positionBuffer, texcoordBuffer, colorBuffer, indexBuffer, vertexArrayObject;						
-
-
+GLuint		positionBuffer, colorBuffer, indexBuffer, vertexArrayObject;						
+GLuint 		texture, texcoordBuffer;
 
 void initGL()
 {
@@ -70,7 +69,7 @@ void initGL()
 		 10.0f,   -10.0f, -30.0f     // v3
 	};
 
-	float texcoords[] = {
+	const float texcoords[] = {
 		0.0f, 0.0f,		// v0
 		0.0f, 1.0f,		// v1
 		1.0f, 1.0f,		// v2
@@ -121,7 +120,6 @@ void initGL()
 	glBindBuffer(GL_ARRAY_BUFFER, texcoordBuffer);
 	glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 
@@ -139,6 +137,7 @@ void initGL()
 	//			Load Texture
 	//************************************
 
+	texture = ilutGLLoadImage("floor.jpg");
 
 }
 
@@ -165,12 +164,20 @@ void display(void)
 	int loc = glGetUniformLocation(shaderProgram, "projectionMatrix");
 	glUniformMatrix4fv(loc, 1, false, &projectionMatrix.c1.x);
 
-
 	glBindVertexArray(vertexArrayObject);
+
+	// Activate & associate with texture.
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture( GL_TEXTURE_2D, texture );
+
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 
 	glUseProgram( 0 ); // "unsets" the current shader program. Not really necessary.
+
+	// Associate colortexture with texture unit 0.
+	int texLoc = glGetUniformLocation( shaderProgram, "colortexture" );
+	glUniform1i( texLoc, 0 );
 
 	glutSwapBuffers(); // swap front and back buffer. This frame will now be displayed.
 	CHECK_GL_ERROR();
