@@ -120,6 +120,7 @@ void initGL()
 	glBindBuffer(GL_ARRAY_BUFFER, texcoordBuffer);
 	glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 
@@ -172,12 +173,11 @@ void display(void)
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+	// Associate colortexture with texture unit 0.
+	GLint texLoc = glGetUniformLocation( shaderProgram, "colortexture" );
+	glUniform1i( texLoc, 0 );
 
 	glUseProgram( 0 ); // "unsets" the current shader program. Not really necessary.
-
-	// Associate colortexture with texture unit 0.
-	int texLoc = glGetUniformLocation( shaderProgram, "colortexture" );
-	glUniform1i( texLoc, 0 );
 
 	glutSwapBuffers(); // swap front and back buffer. This frame will now be displayed.
 	CHECK_GL_ERROR();
