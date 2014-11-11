@@ -24,6 +24,51 @@ GLuint vertexArrayObject;
 // be activated (glUseProgram()).
 GLuint shaderProgram;
 
+// FULHAXX:
+// 
+// 
+	// Define the positions for each of the three vertices of the triangle
+	const float positions[] = {
+		// 1:st triangle
+		//	 X      Y     Z
+		0.0f,   0.5f, 1.0f,		// v0
+		-0.5f,  -0.5f, 1.0f,	// v1
+		0.5f,  -0.5f, 1.0f,		// v2
+
+		// 2:nd triangle
+		//	 X      Y     Z
+		-1.0f, 1.0f, 1.0f,		// v0
+		0.0f,  1.0f, 1.0f,		// v1
+		-1.0f, -1.0f, 1.0f,		// v2
+
+		// 3:rd triangle
+		//	 X      Y     Z
+		0.0f, 1.0f, 1.0f,		// v0
+		1.0f,  1.0f, 1.0f,		// v1
+		1.0f, -1.0f, 1.0f		// v2
+	};
+
+	// Define the colors for each of the three vertices of the triangle
+	const float colors[] = {
+		// 1:st triangle.
+		//  R     G		B
+		1.0f, 0.0f, 0.0f,		// Red
+		0.0f, 1.0f, 0.0f,		// Green
+		0.0f, 0.0f, 1.0f,		// Blue
+
+		// 2:nd triangle
+		//  R     G		B
+		1.0f, 0.0f, 0.0f,		// Red
+		0.0f, 1.0f, 0.0f,		// Green
+		0.0f, 0.0f, 1.0f,		// Blue
+
+		// 3:rd triangle
+		//  R     G		B
+		1.0f, 0.0f, 0.0f,		// Red
+		0.0f, 1.0f, 0.0f,		// Green
+		0.0f, 0.0f, 1.0f		// Blue
+	};
+
 void initGL()
 {
 	/* Initialize GLEW; this gives us access to OpenGL Extensions.
@@ -51,30 +96,6 @@ void initGL()
 	 * comment in initGL().
 	 */
 
-	// Define the positions for each of the three vertices of the triangle
-	const float positions[] = {
-		//	 X      Y     Z
-		0.0f,   0.5f, 1.0f,		// v0
-		-0.5f,  -0.5f, 1.0f,	// v1
-		0.5f,  -0.5f, 1.0f,		// v2
-
-		//	 X      Y     Z
-		-1.0f, 1.0f, 1.0f,		// v0
-		0.0f,  1.0f, 1.0f,		// v1
-		-1.0f, -1.0f, 1.0f		// v2
-	};
-
-	// Define the colors for each of the three vertices of the triangle
-	const float colors[] = {
-		//  R     G		B
-		1.0f, 0.0f, 0.0f,		// Red
-		0.0f, 1.0f, 0.0f,		// Green
-		0.0f, 0.0f, 1.0f,		// Blue
-		//  R     G		B
-		1.0f, 0.0f, 0.0f,		// Red
-		0.0f, 1.0f, 0.0f,		// Green
-		0.0f, 0.0f, 1.0f		// Blue
-	};
 
 	// Create a handle for the position vertex buffer object
 	// See OpenGL Spec §2.9 Buffer Objects 
@@ -220,7 +241,7 @@ void display(void)
 	// Bind the vertex array object that contains all the vertex data.
 	glBindVertexArray(vertexArrayObject);
 	// Submit triangles from currently bound vertex array object.
-	glDrawArrays( GL_TRIANGLES, 0, 3 );				// Render 1 triangle
+	glDrawArrays( GL_TRIANGLES, 0, sizeof(positions) );	 // Render 1 triangle
 
 
 	glUseProgram( 0 );						// "unsets" the current shader program. Not really necessary.

@@ -20,3 +20,16 @@ GL_TEXTURE_BUFFER 				|	Texture data buffer
 GL_TRANSFORM_FEEDBACK_BUFFER 	|	Transform feedback buffer
 GL_UNIFORM_BUFFER 				|	Uniform block storage
 
+## Ex3:
+
+positionBuffer = BO
+colorBuffer = BO
+vertexArrayObject = VAO
+
+Link order: 2, 4, 1, 3
+
+## Ex4:
+
+b) by name
+
+... add another triangle.
