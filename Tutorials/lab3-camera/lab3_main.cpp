@@ -31,6 +31,9 @@ float currentTime = 0.0f;
 bool trigSpecialEvent = false;
 bool paused = false;
 
+float camera_theta = 0.0f;
+float camera_phi = M_PI / 2.0f;
+float camera_r = 8.0;
 
 Box *myBox; 
 
@@ -122,8 +125,10 @@ void display(void)
 	// currently we set it to identity.
 	float4x4 modelMatrix = make_identity<float4x4>();
 	// The view matrix defines where the viewer is looking
-	// currently we set it to identity.
-	float4x4 viewMatrix = make_identity<float4x4>();
+	float3 camera_position = sphericalToCartesian(camera_theta, camera_phi, camera_r);
+	float3 camera_lookAt = make_vector(0.0f, 0.0f, 0.0f);
+	float3 camera_up = make_vector(0.0f, 1.0f, 0.0f);
+	float4x4 viewMatrix = lookAt(camera_position, camera_lookAt, camera_up);
 
 	float4x4 projectionMatrix = perspectiveMatrix(45.0f, float(w) / float(h), 0.01f, 300.0f);
 
@@ -134,7 +139,14 @@ void display(void)
 
 	// Draw the box
 	myBox->draw();
-
+	// Draw a second box
+	float4x4 r = make_rotation_y<float4x4>(currentTime * M_PI * 0.5f);
+	float4x4 t = make_translation(make_vector(8.0f, 1.0f, 0.0f));
+	modelMatrix = r * t;
+	modelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
+	// Update the modelViewProjectionMatrix used in the vertex shader
+	glUniformMatrix4fv(loc, 1, false, &modelViewProjectionMatrix.c1.x);
+	myBox->draw();
 
 	glUseProgram( 0 );	
 
@@ -239,6 +251,18 @@ void motion(int x, int y)
 {
 	int delta_x = x - prev_x;
 	int delta_y = y - prev_y;
+
+	if (leftDown)
+	{
+		camera_phi -= float(delta_y) * 0.3f * M_PI / 180.0f;
+		camera_phi = min(max(0.01f, camera_phi), M_PI - 0.01f);
+		camera_theta += float(delta_x) * 0.3f * M_PI / 180.0f;
+	}
+
+	if (rightDown)
+	{
+		camera_r += delta_y; //TODO: verify
+	}
 
 	printf("Motion: %d %d\n", x, y);
 
