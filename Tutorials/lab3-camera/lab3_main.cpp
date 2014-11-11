@@ -255,7 +255,7 @@ void motion(int x, int y)
 	if (leftDown)
 	{
 		camera_phi -= float(delta_y) * 0.3f * M_PI / 180.0f;
-		camera_phi = min(max(0.01f, camera_phi), M_PI - 0.01f);
+		camera_phi = min(max(0.01f, camera_phi), (float) M_PI - 0.01f);
 		camera_theta += float(delta_x) * 0.3f * M_PI / 180.0f;
 	}
 

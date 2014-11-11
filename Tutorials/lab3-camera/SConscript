@@ -9,6 +9,7 @@ TEXTURES = "Crate.bmp flake.ppm white-marble.ppm";
 Import( "env" );
 Import( "libGLUTIL" );
 Import( "libLinmath" );
+env.Prepend(CXXFLAGS = ["-std=c++11"]);
 
 from SCript.Stages import config, build, install;
 
