@@ -9,6 +9,7 @@ DATADIRS = "shaders";
 Import( "env" );
 Import( "libGLUTIL" );
 Import( "libLinmath" );
+env.Prepend(CXXFLAGS = ["-std=c++11"]);
 
 from SCript.Stages import config, build, install;
 from os.path import join as join_path;

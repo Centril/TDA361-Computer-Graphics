@@ -9,6 +9,7 @@
 #include <IL/il.h>
 #include <IL/ilut.h>
 
+#include <iostream>
 #include <cstdlib>
 #include <algorithm>
 
@@ -23,9 +24,14 @@ using std::min;
 using std::max;
 using namespace chag;
 
+#ifdef WIN32
+#define SCENES "../scenes"
+#else
+#define SCENES "../../../scenes"
+#endif
+
 GLuint shaderProgram;
 GLuint postFxShader;
-
 
 bool leftDown = false;
 bool middleDown = false;
@@ -109,16 +115,16 @@ void initGL()
 	// Load some models. Uses OBJModel - you don't have to look at the OBJModel
 	// implementation at this point.
 	boxModel = new OBJModel;
-	boxModel->load("../scenes/lab5.obj");
+	boxModel->load(SCENES "/lab5.obj");
 
 	cameraModel = new OBJModel;
-	cameraModel->load("../scenes/camera.obj");
+	cameraModel->load(SCENES "/camera.obj");
 
 	securityConsoleModel = new OBJModel;
-	securityConsoleModel->load("../scenes/security_console.obj");
+	securityConsoleModel->load(SCENES "/security_console.obj");
 
 	fighterModel = new OBJModel;
-	fighterModel->load("../scenes/fighter.obj");
+	fighterModel->load(SCENES "/fighter.obj");
   
 	// load and set up default shader
 	shaderProgram = loadShaderProgram("shaders/simple.vert", "shaders/simple.frag");
@@ -373,13 +379,7 @@ int main(int argc, char *argv[])
 	 * Note: not all versions of GLUT define GLUT_SRGB; fall back to "normal"
 	 * RGB for those versions.
 	 */
-#	if defined(GLUT_SRGB)
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_SRGB | GLUT_DEPTH);
-#	else // !GLUT_SRGB
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	printf( "--\n" );
-	printf( "-- WARNING: your GLUT doesn't support sRGB / GLUT_SRGB\n" );
-#	endif // ~ GLUT_SRGB
 	glutInitWindowSize(512,512);
 
 	/* Require at least OpenGL 3.0. Also request a Debug Context, which allows
