@@ -9,6 +9,7 @@
 #include <IL/il.h>
 #include <IL/ilut.h>
 
+#include <cmath>
 #include <cstdlib>
 #include <algorithm>
 
@@ -22,8 +23,16 @@ using std::min;
 using std::max;
 using namespace chag;
 
+#ifdef WIN32
+#define FIGHTER_PATH "../scenes/fighter.obj"
+#else
+#define FIGHTER_PATH "../../../scenes/fighter.obj"
+#endif
+
+OBJModel* fighterModel;
+
 GLuint shaderProgram;
-GLuint positionBuffer, texcoordBuffer, vertexArrayObject;						
+GLuint positionBuffer, normalBuffer, texcoordBuffer, vertexArrayObject;						
 
 GLuint texture, cubeMapTexture; 
 
@@ -85,11 +94,20 @@ void initGL()
 	//************************************
 	//		Specifying the object
 	//************************************
+	fighterModel = new OBJModel;
+	fighterModel->load(FIGHTER_PATH);
+
 	float positions[] = {
 		-5.0f,   5.0f, 0.0f,	// v0	-		v0	v2
 		-5.0f,  -5.0f, 0.0f,	// v1	-		|  /| 
 		5.0f,   5.0f, 0.0f,		// v2	-		| / |
 		5.0f,  -5.0f, 0.0f		// v3	-		v1	v3
+	};
+	float normals[] = {
+		0.0f, 0.0f, 1.0f,		// v0
+		0.0f, 0.0f, 1.0f,		// v1
+		0.0f, 0.0f, 1.0f,		// v2
+		0.0f, 0.0f, 1.0f 		// v3
 	};
 	float texcoords[] = {
 		0.0f, 1.0f, 		// (u,v) for v0	
@@ -103,6 +121,10 @@ void initGL()
 	glBindBuffer( GL_ARRAY_BUFFER, positionBuffer );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW );
 
+	glGenBuffers( 1, &normalBuffer );
+	glBindBuffer( GL_ARRAY_BUFFER, normalBuffer );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW );
+
 	glGenBuffers( 1, &texcoordBuffer );
 	glBindBuffer( GL_ARRAY_BUFFER, texcoordBuffer );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW );
@@ -115,18 +137,23 @@ void initGL()
 	glBindBuffer( GL_ARRAY_BUFFER, positionBuffer );	
 	glVertexAttribPointer(0, 3, GL_FLOAT, false/*normalized*/, 0/*stride*/, 0/*offset*/ );	
 
+	glBindBuffer( GL_ARRAY_BUFFER, normalBuffer );
+	glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+
 	glBindBuffer( GL_ARRAY_BUFFER, texcoordBuffer );
 	glVertexAttribPointer(2, 2, GL_FLOAT, false/*normalized*/, 0/*stride*/, 0/*offset*/ );
 
 
 	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 
 	//************************************
 	//			Create Shaders
 	//************************************
 	shaderProgram = loadShaderProgram("simple.vert", "simple.frag"); 
-	glBindAttribLocation(shaderProgram, 0, "position"); 	
+	glBindAttribLocation(shaderProgram, 0, "position"); 
+	glBindAttribLocation(shaderProgram, 1, "normalIn");	
 	glBindAttribLocation(shaderProgram, 2, "texCoordIn");
 	glBindFragDataLocation(shaderProgram, 0, "fragmentColor");
 
@@ -140,6 +167,7 @@ void initGL()
 
 	// set the 0th texture unit to serve the 'diffuse_texture' sampler.
 	setUniformSlow(shaderProgram, "diffuse_texture", 0 );
+	setUniformSlow(shaderProgram, "environmentMap", 1);
 
 	//************************************
 	//			Load Texture
@@ -162,7 +190,8 @@ void initGL()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); 
 
 
-
+	cubeMapTexture = loadCubeMap("cube0.png", "cube1.png", "cube2.png",
+								 "cube3.png", "cube4.png", "cube5.png");
 }
 
 void display(void)
@@ -178,6 +207,9 @@ void display(void)
 	// Shader Program
 	glUseProgram( shaderProgram );				// Set the shader program to use for this draw call
 
+	// Rotate light depending on time.
+	light_theta = (float) fmod(light_theta + currentTime / 250, 2 * M_PI);
+
 	// Set up matrices
 	float4x4 modelMatrix = make_identity<float4x4>();
 	float3 camera_position = sphericalToCartesian(camera_theta, camera_phi, camera_r);
@@ -186,10 +218,21 @@ void display(void)
 	float4x4 viewMatrix = lookAt(camera_position, 
 								 camera_lookAt,	
 								 camera_up);
+	float4x4 modelViewMatrix = viewMatrix * modelMatrix;
+	float4x4 normalMatrix = inverse(transpose(modelViewMatrix));
 
 	float4x4 projectionMatrix = perspectiveMatrix(45.0f, float(w) / float(h), 0.01f, 300.0f);
+	float4x4 modelViewProjectionMatrix = projectionMatrix * modelViewMatrix;
 	// Concatenate the three matrices and pass the final transform to the vertex shader
-	setUniformSlow(shaderProgram, "modelViewProjectionMatrix", projectionMatrix * viewMatrix * modelMatrix);
+	setUniformSlow(shaderProgram, "modelViewProjectionMatrix", modelViewProjectionMatrix);
+	setUniformSlow(shaderProgram, "modelViewMatrix", modelViewMatrix);
+	setUniformSlow(shaderProgram, "normalMatrix", normalMatrix);
+	setUniformSlow(shaderProgram, "inverseViewNormalMatrix", transpose(viewMatrix));
+
+	float4 lightPosition = make_vector4(sphericalToCartesian(light_theta, light_phi, light_r), 1.0f);
+	float4 viewSpaceLightPosition = viewMatrix * lightPosition;
+	setUniformSlow(shaderProgram, "viewSpaceLightPosition", make_vector3(viewSpaceLightPosition));
+
 	// set light properties in shader.
 	setUniformSlow(shaderProgram, "scene_light", make_vector(0.9f, 0.8f, 0.8f));
 	setUniformSlow(shaderProgram, "scene_ambient_light", make_vector(0.2f, 0.2f, 0.2f));
@@ -199,7 +242,13 @@ void display(void)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+	// Render environment.
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+
+	// Render fighter.
+	fighterModel->render();
+	//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 
 	// Draw the lights position
 	debugDrawLight(viewMatrix, projectionMatrix, sphericalToCartesian(light_theta, light_phi, light_r)); 
