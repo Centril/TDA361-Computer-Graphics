@@ -9,6 +9,7 @@ TEXTURES = ["white-marble.ppm"] + Glob( "*.jpg" ) + Glob( "*.png" );
 Import( "env" );
 Import( "libGLUTIL" );
 Import( "libLinmath" );
+env.Prepend(CXXFLAGS = ["-std=c++11"]);
 
 from SCript.Stages import config, build, install;
 
