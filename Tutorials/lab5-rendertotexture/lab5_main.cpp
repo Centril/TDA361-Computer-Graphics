@@ -32,6 +32,8 @@ using namespace chag;
 
 GLuint shaderProgram;
 GLuint postFxShader;
+GLuint texFrameBuffer, texFrameBuffer2, texPostProcess;
+GLuint frameBuffer, depthBuffer, postProcessFrameBuffer, postDepthBuffer;
 
 bool leftDown = false;
 bool middleDown = false;
@@ -149,6 +151,57 @@ void initGL()
 	int w = glutGet( (GLenum)GLUT_WINDOW_WIDTH );
 	int h = glutGet( (GLenum)GLUT_WINDOW_HEIGHT );
 
+	// Create a texture for the frame buffer, with specified filtering,
+	// rgba-format and size
+	glGenTextures(1, &texFrameBuffer);
+	glBindTexture(GL_TEXTURE_2D, texFrameBuffer);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glGenTextures(1, &texFrameBuffer2);
+	glBindTexture(GL_TEXTURE_2D, texFrameBuffer2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glGenTextures(1, &texPostProcess);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texPostProcess);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glGenFramebuffers(1, &frameBuffer);
+	// Bind the framebuffer such that following commands will affect it.
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texFrameBuffer, 0);
+
+	glGenRenderbuffers(1, &depthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 512, 512);
+	// Associate our created depth buffer with the FBO
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+	
+	glGenFramebuffers(1, &postProcessFrameBuffer);
+	// Bind the framebuffer such that following commands will affect it.
+	glBindFramebuffer(GL_FRAMEBUFFER, postProcessFrameBuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE_ARB, texPostProcess, 0);
+
+	glGenRenderbuffers(1, &postDepthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, postDepthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 512, 512);
+	// Associate our created depth buffer with the FBO
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, postDepthBuffer);
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+	{
+		fatal_error("Framebuffer not complete");
+	}
+
+	//restore current binding (rendering) to the default frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 
@@ -156,7 +209,7 @@ void initGL()
 void drawSecurityConsole(const float3 &position, float orientation, const float4x4 &view, const float4x4 &projection)
 {
 	float4x4 viewProjection = projection * view;
-  float4x4 consoleModelMatrix = make_translation(position)
+	float4x4 consoleModelMatrix = make_translation(position)
     * make_rotation_y<float4x4>(orientation);
 	
 	setUniformSlow(shaderProgram, "modelViewProjectionMatrix", viewProjection * consoleModelMatrix);
@@ -171,9 +224,11 @@ void drawSecurityConsole(const float3 &position, float orientation, const float4
 		make_vector(1.5f, 1.5f, 1.5f));
 
 
-  // insert texture binding here...
-  // draw security screen here...
-  securityConsoleModel->render();
+    // insert texture binding here...
+	glBindTexture(GL_TEXTURE_2D, texFrameBuffer2);
+	drawSecurityScreenQuad();
+	// draw security screen here...
+	securityConsoleModel->render();
 }
 
 
@@ -238,16 +293,34 @@ void display(void)
 	// Shader Program
 	glUseProgram(shaderProgram);
 
-	int w = glutGet((GLenum)GLUT_WINDOW_WIDTH);
-	int h = glutGet((GLenum)GLUT_WINDOW_HEIGHT);
+	int w = glutGet((GLenum) GLUT_WINDOW_WIDTH);
+	int h = glutGet((GLenum) GLUT_WINDOW_HEIGHT);
 
 	// Insert FBO rendering here
 
-	// Set the viewport of the default frame buffer. Since the default frame
-	// buffer is shown in the main window, we use the window size.
+	// bind the frameBuffer as our render target, this means that render
+	// operations will end up affecting the texture 'texFrameBuffer'
+	// that we attached to the frame buffer earlier.
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	// We must also set the viewport for the frame buffer to match the
+	// size of the texture, if it is not the same portions may not be
+	// drawn or things may end up outside of the texture (as in not be visible).
+	glViewport(0, 0, 512, 512);
+	// Clear the color/depth buffers of the current FBO
+	// (i.e. the attached textures and render buffers)
+	glClearColor(0.6, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// clear 
-	glClearColor(0.0,0.0,0.0,1.0);
+	drawScene(shaderProgram, lookAt(securityCamPos, securityCamTarget, up), perspectiveMatrix(45.0f, 1.0f, 1.5f, 100.0f));
+	// copy to second texture
+	glBindTexture(GL_TEXTURE_2D, texFrameBuffer2);
+	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, 512, 512);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// Bind the default frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, postProcessFrameBuffer);
+
+	glClearColor(0.6, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
  	// setup matrices and draw scene
@@ -260,12 +333,29 @@ void display(void)
 		45.0f, float(w) / float(h), 0.01f, 300.0f
 	);
 
-
-
 	drawScene(shaderProgram, viewMatrix, projectionMatrix);  
+	/*
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, postProcessFrameBuffer);
+	glBlitFramebuffer(0, 0, w, h, 0
+		, 0, w, h, GL_COLOR_BUFFER_BIT,
+		GL_NEAREST);
+	*/
+	
+	// Bind the default frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, 512, 512);
+	glClearColor(0.6, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glUseProgram(postFxShader);
+	setUniformSlow(postFxShader,"frameBufferTexture", 0);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texPostProcess);
+	setUniformSlow(postFxShader, "time", currentTime);
 
-	glUseProgram( 0 );	
+	drawFullScreenQuad();
+
+	glUseProgram( 0 );
 
 	glutSwapBuffers();  // swap front and back buffer. This frame will now be displayed.
 	CHECK_GL_ERROR();

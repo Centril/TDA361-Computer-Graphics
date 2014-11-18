@@ -17,3 +17,4 @@ config.log
 *.idb
 *.pdb
 *.lib
+Thumbs.db
