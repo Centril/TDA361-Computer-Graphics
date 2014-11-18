@@ -308,7 +308,7 @@ void display(void)
 	glViewport(0, 0, 512, 512);
 	// Clear the color/depth buffers of the current FBO
 	// (i.e. the attached textures and render buffers)
-	glClearColor(0.6, 0.0, 0.0, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	drawScene(shaderProgram, lookAt(securityCamPos, securityCamTarget, up), perspectiveMatrix(45.0f, 1.0f, 1.5f, 100.0f));
@@ -320,7 +320,7 @@ void display(void)
 	// Bind the default frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, postProcessFrameBuffer);
 
-	glClearColor(0.6, 0.0, 0.0, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
  	// setup matrices and draw scene
@@ -345,7 +345,7 @@ void display(void)
 	// Bind the default frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, 512, 512);
-	glClearColor(0.6, 0.0, 0.0, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(postFxShader);
