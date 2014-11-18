@@ -5,4 +5,5 @@ Uses for rendering to textures:
 + Reflections
 + Water
 + Shadows
++ Minimaps
 + Many more uses

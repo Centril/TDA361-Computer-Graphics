@@ -75,10 +75,13 @@ void drawSecurityScreenQuad();
 // Used to draw a full-screen quad, used in post processing effects.
 void drawFullScreenQuad();
 
-
-
-
-
+void makeTexBuffer( GLuint* fbo, GLenum type ) {
+	glGenTextures(1, fbo );
+	glBindTexture(type, *fbo);
+	glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(type, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+}
 
 void initGL()
 {
@@ -153,23 +156,9 @@ void initGL()
 
 	// Create a texture for the frame buffer, with specified filtering,
 	// rgba-format and size
-	glGenTextures(1, &texFrameBuffer);
-	glBindTexture(GL_TEXTURE_2D, texFrameBuffer);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-	glGenTextures(1, &texFrameBuffer2);
-	glBindTexture(GL_TEXTURE_2D, texFrameBuffer2);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-	glGenTextures(1, &texPostProcess);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texPostProcess);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	makeTexBuffer(&texFrameBuffer, GL_TEXTURE_2D);
+	makeTexBuffer(&texFrameBuffer2, GL_TEXTURE_2D);
+	makeTexBuffer(&texPostProcess, GL_TEXTURE_RECTANGLE_ARB);
 
 	glGenFramebuffers(1, &frameBuffer);
 	// Bind the framebuffer such that following commands will affect it.
@@ -333,7 +322,7 @@ void display(void)
 		45.0f, float(w) / float(h), 0.01f, 300.0f
 	);
 
-	drawScene(shaderProgram, viewMatrix, projectionMatrix);  
+	drawScene(shaderProgram, viewMatrix, projectionMatrix);
 	/*
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, postProcessFrameBuffer);
