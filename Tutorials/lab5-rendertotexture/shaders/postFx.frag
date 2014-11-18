@@ -37,11 +37,17 @@ vec3 grayscale(vec3 sample);
  */
 vec3 toSepiaTone(vec3 rgbSample);
 
-
+vec3 mosaic(vec2 coord)
+{
+	return vec3(texture(frameBufferTexture, vec2(coord.x - mod(coord.x, 16), coord.y - mod(coord.y, 16))).xyz);
+}
 
 void main() 
 {
-	fragmentColor = vec4(toSepiaTone(texture(frameBufferTexture, gl_FragCoord.xy).xyz), 1.0);
+
+	fragmentColor = vec4(mosaic(gl_FragCoord.xy), 1.0);
+
+	//fragmentColor = vec4(toSepiaTone(texture(frameBufferTexture, gl_FragCoord.xy).xyz), 1.0);
 
 	//fragmentColor = texture(frameBufferTexture, mushrooms(gl_FragCoord.xy));
 	
