@@ -17,6 +17,12 @@
 #include <float4x4.h>
 #include <float3x3.h>
 
+#ifdef WIN32
+#define SCENES "../scenes"
+#else
+#define SCENES "../../../scenes"
+#endif
+
 using namespace std;
 using namespace chag;
 
@@ -115,11 +121,11 @@ void initGL()
 	// Load the models from disk
 	//*************************************************************************
 	world = new OBJModel(); 
-	world->load("../scenes/island.obj");
+	world->load(SCENES "/island.obj");
 	skybox = new OBJModel();
-	skybox->load("../scenes/skybox.obj");
+	skybox->load(SCENES "/skybox.obj");
 	skyboxnight = new OBJModel();
-	skyboxnight->load("../scenes/skyboxnight.obj");
+	skyboxnight->load(SCENES "/skyboxnight.obj");
 	// Make the textures of the skyboxes use clamp to edge to avoid seams
 	for(int i=0; i<6; i++){
 		glBindTexture(GL_TEXTURE_2D, skybox->getDiffuseTexture(i)); 
@@ -130,9 +136,9 @@ void initGL()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 	water = new OBJModel(); 
-	water->load("../scenes/water.obj");
+	water->load(SCENES "/water.obj");
 	car = new OBJModel(); 
-	car->load("../scenes/car.obj");
+	car->load(SCENES "/car.obj");
 
 
 }
@@ -332,7 +338,7 @@ int main(int argc, char *argv[])
 	 * Note: not all versions of GLUT define GLUT_SRGB; fall back to "normal"
 	 * RGB for those versions.
 	 */
-#	if defined(GLUT_SRGB)
+#	if defined(GLUT_SRGB) && defined(WIN32)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_SRGB | GLUT_DEPTH);
 #	else // !GLUT_SRGB
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
