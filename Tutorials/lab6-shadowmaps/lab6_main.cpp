@@ -226,13 +226,12 @@ void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
 
 }
 
-
 void display(void)
 {
 	// construct light matrices
 	float4x4 lightViewMatrix = lookAt(lightPosition, make_vector(0.0f, 0.0f, 0.0f), up);
 	float4x4 lightProjMatrix = perspectiveMatrix(45.0f, 1.0, 5.0f, 100.0f);
-
+	drawShadowMap( lightViewMatrix, lightProjMatrix );
 
 	int w = glutGet((GLenum)GLUT_WINDOW_WIDTH);
 	int h = glutGet((GLenum)GLUT_WINDOW_HEIGHT);
@@ -249,7 +248,8 @@ void display(void)
 	);
 
 	// draw scene
-	drawScene( viewMatrix, projMatrix, lightViewMatrix, lightProjMatrix );
+	//drawScene( viewMatrix, projMatrix, lightViewMatrix, lightProjMatrix );
+	
 
 	// Swap buffers. Eventually displays the current frame.
 	glutSwapBuffers();
