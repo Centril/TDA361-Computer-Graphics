@@ -154,8 +154,13 @@ void initGL()
 	// render target.
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+	float4 zeros = {0.0f, 0.0f, 0.0f, 0.0f};
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
+	glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &zeros.x );
 
 	// Cleanup: unbind the texture again - we’re finished with it for now
 	glBindTexture( GL_TEXTURE_2D, 0 );
@@ -247,6 +252,12 @@ void drawScene(const float4x4 &viewMatrix, const float4x4 &projectionMatrix, con
 	glActiveTexture( GL_TEXTURE1 );
 	glBindTexture( GL_TEXTURE_2D, shadowMapTexture );
 
+	float3 viewSpaceLightDir = transformDirection(
+		viewMatrix, -normalize(lightPosition) );
+	setUniformSlow( shaderProgram, "viewSpaceLightDir", viewSpaceLightDir );
+	setUniformSlow( shaderProgram, "spotOpeningAngle", 
+		std::cos(20.0f*3.1415f/180.0f) );
+
 	// draw objects in scene
 	drawShadowCasters( shaderProgram, viewMatrix, projectionMatrix );
 	
@@ -254,9 +265,11 @@ void drawScene(const float4x4 &viewMatrix, const float4x4 &projectionMatrix, con
 	glUseProgram( 0 );	
 }
 
-
 void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
 {
+	glEnable( GL_POLYGON_OFFSET_FILL );
+	glPolygonOffset( 2.5, 10 );
+
 	glBindFramebuffer( GL_FRAMEBUFFER, shadowMapFBO );
 	glViewport( 0, 0, shadowMapResolution, shadowMapResolution );
 
@@ -278,6 +291,8 @@ void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
 	glUseProgram( currentProgram );	
 
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+	glDisable( GL_POLYGON_OFFSET_FILL );
 }
 
 void display(void)
@@ -371,8 +386,6 @@ void mouse(int button, int state, int x, int y)
 	}
 }
 
-
-
 void motion(int x, int y)
 {
 	int delta_x = x - prev_x;
@@ -394,8 +407,6 @@ void motion(int x, int y)
 	prev_y = y;
 }
 
-
-
 void idle( void )
 {
 	// glutGet(GLUT_ELAPSED_TIME) returns the time since application start in milliseconds.
@@ -415,8 +426,6 @@ void idle( void )
 
 	glutPostRedisplay(); 
 }
-
-
 
 int main(int argc, char *argv[])
 {
