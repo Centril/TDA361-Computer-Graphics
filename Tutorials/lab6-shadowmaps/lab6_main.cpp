@@ -228,6 +228,10 @@ void drawScene(const float4x4 &viewMatrix, const float4x4 &projectionMatrix, con
 	// Use default shader for rendering
 	glUseProgram( shaderProgram );
 
+	float4x4 lightMatrix =	lightProjectionMatrix *
+							lightViewMatrix *
+							inverse(viewMatrix);
+	setUniformSlow( shaderProgram, "lightMatrix", lightMatrix );
 
 	// set the 0th texture unit to serve the 'diffuse_texture' sampler.
 	// Note: this must match the texture unit that OBJModel::render() attempts
@@ -238,6 +242,10 @@ void drawScene(const float4x4 &viewMatrix, const float4x4 &projectionMatrix, con
 	float3 viewSpaceLightPos = transformPoint(viewMatrix, lightPosition); 
 	setUniformSlow(shaderProgram, "viewSpaceLightPosition", viewSpaceLightPos);
 
+	// Shadow map texture:
+	setUniformSlow( shaderProgram, "shadowMapTex", 1 );
+	glActiveTexture( GL_TEXTURE1 );
+	glBindTexture( GL_TEXTURE_2D, shadowMapTexture );
 
 	// draw objects in scene
 	drawShadowCasters( shaderProgram, viewMatrix, projectionMatrix );

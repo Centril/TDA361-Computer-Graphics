@@ -1,6 +1,5 @@
 #version 130
 
-
 // required by GLSL spec Sect 4.5.3 (though nvidia does not, amd does)
 precision highp float;
 
@@ -10,6 +9,8 @@ in vec3 viewSpacePosition;
 
 out vec4 fragmentColor;
 
+in vec4 shadowMapCoord;
+uniform sampler2D shadowMapTex;
 
 uniform vec3 viewSpaceLightPosition;
 uniform int has_diffuse_texture; 
@@ -24,5 +25,8 @@ void main()
 	vec3 posToLight = normalize(viewSpaceLightPosition - viewSpacePosition);
 	float diffuseReflectance = max(0.0, dot(posToLight, normalize(viewSpaceNormal)));
 
-	fragmentColor = vec4(diffuseColor * diffuseReflectance, 1.0);
+	//fragmentColor = vec4(diffuseColor * diffuseReflectance, 1.0);
+	float depth = texture( shadowMapTex, shadowMapCoord.xy / shadowMapCoord.w ).x;
+	float visibility = (depth >= (shadowMapCoord.z/shadowMapCoord.w)) ? 1.0 : 0.0;
+	fragmentColor = vec4(diffuseColor * diffuseReflectance * visibility, 1.0);
 }
