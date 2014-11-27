@@ -24,6 +24,12 @@ using std::min;
 using std::max;
 using namespace chag;
 
+#ifdef WIN32
+#define SCENES "../scenes"
+#else
+#define SCENES "../../../scenes"
+#endif
+
 // Shader for rendering the final image
 GLuint shaderProgram;
 // Shader used to draw the shadow map (and some other simple objects)
@@ -112,10 +118,10 @@ void initGL()
 	// Load models and set up model matrices
 	//************************************
 	fighterModel = new OBJModel;
-	fighterModel->load("../scenes/fighter.obj");
+	fighterModel->load(SCENES "/fighter.obj");
 
 	boxModel = new OBJModel;
-	boxModel->load("../scenes/lab5.obj");
+	boxModel->load(SCENES "/lab5.obj");
   
 	roomModelMatrix = make_scale<float4x4>(make_vector(3.5f, 1.0f, 3.5f));
 	fighterModelMatrix = make_translation(make_vector(0.0f, 3.5f, 0.0f))
