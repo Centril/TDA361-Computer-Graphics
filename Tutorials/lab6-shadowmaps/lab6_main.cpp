@@ -57,7 +57,7 @@ float3 sphericalToCartesian(float theta, float phi, float r)
 
 
 // lights angle around y-axis
-float3 lightPosition; 
+float3 lightPosition;
 
 // Model matrices
 float4x4 roomModelMatrix;
@@ -70,7 +70,7 @@ OBJModel *boxModel = 0;
 // Shadow map:
 GLuint shadowMapTexture;
 GLuint shadowMapFBO;
-const int shadowMapResolution = 1024;
+const int shadowMapResolution = 128;
 
 void initGL()
 {
@@ -152,8 +152,8 @@ void initGL()
 
 	// We need to setup these; otherwise the texture is illegal as a
 	// render target.
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 
