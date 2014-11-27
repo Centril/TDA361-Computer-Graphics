@@ -255,8 +255,10 @@ void drawScene(const float4x4 &viewMatrix, const float4x4 &projectionMatrix, con
 	float3 viewSpaceLightDir = transformDirection(
 		viewMatrix, -normalize(lightPosition) );
 	setUniformSlow( shaderProgram, "viewSpaceLightDir", viewSpaceLightDir );
-	setUniformSlow( shaderProgram, "spotOpeningAngle", 
-		std::cos(20.0f*3.1415f/180.0f) );
+	setUniformSlow( shaderProgram, "spotOuterAngle", 
+		std::cos(25.0f*3.1415f/180.0f) );
+	setUniformSlow( shaderProgram, "spotInnerAngle", 
+		std::cos(0.0f*3.1415f/180.0f) );
 
 	// draw objects in scene
 	drawShadowCasters( shaderProgram, viewMatrix, projectionMatrix );
