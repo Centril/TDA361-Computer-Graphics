@@ -162,6 +162,10 @@ void initGL()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
 	glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &zeros.x );
 
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
+		GL_COMPARE_REF_TO_TEXTURE );
+
 	// Cleanup: unbind the texture again - we’re finished with it for now
 	glBindTexture( GL_TEXTURE_2D, 0 );
 
@@ -233,7 +237,9 @@ void drawScene(const float4x4 &viewMatrix, const float4x4 &projectionMatrix, con
 	// Use default shader for rendering
 	glUseProgram( shaderProgram );
 
-	float4x4 lightMatrix =	lightProjectionMatrix *
+	float4x4 lightMatrix =	make_translation(make_vector(0.5f, 0.5f, 0.5f)) *
+							make_scale<float4x4, float>(0.5) *
+							lightProjectionMatrix *
 							lightViewMatrix *
 							inverse(viewMatrix);
 	setUniformSlow( shaderProgram, "lightMatrix", lightMatrix );
