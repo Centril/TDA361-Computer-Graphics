@@ -14,18 +14,20 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix; 
 uniform vec3 lightpos; 
 
-
 void main() 
 {
 	mat4 modelViewMatrix = viewMatrix * modelMatrix; 
 	mat4 modelViewProjectionMatrix = projectionMatrix * modelViewMatrix; 
+	mat4 normalMatrix = inverse(transpose(modelViewMatrix));
+
+	// OUTDATED, IT WORKS FINE ON OUR DRIVERS!
 	///////////////////////////////////////////////////////////////////////////
 	// The normal matrix should really be the inverse transpose of the 
 	// modelViewMatrix, but that doesn't compile on current drivers.
 	// Just using the modelView matrix works fine, as long as it does not
-	// contain any nonuniform scaling. 
-	mat4 normalMatrix = inverse(transpose(modelViewMatrix));
+	// contain any nonuniform scaling.
 	///////////////////////////////////////////////////////////////////////////
+
 	color = vec4(colorIn,1); 
 	texCoord = texCoordIn; 
 	viewSpacePosition = vec3(modelViewMatrix * vec4(position, 1)); 
