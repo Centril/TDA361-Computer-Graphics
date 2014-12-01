@@ -81,17 +81,15 @@ void main()
 	vec3 directionToLight = normalize(viewSpaceLightPosition - viewSpacePosition);
 	vec3 directionFromEye = normalize(viewSpacePosition);
 
-	vec3 fresnelSpecular = calculateFresnel(specular, normal, directionFromEye);
-
 	vec3 reflectionVector = (inverseViewNormalMatrix * vec4(reflect(directionFromEye, normal), 0.0)).xyz;
 	//vec3 envMapSample = texture(environmentMap, reflectionVector).rgb;
 
 	vec3 shadeAmbient = calculateAmbient(scene_ambient_light, ambient);
-
 	vec3 shading =	shadeAmbient + emissive;
 
 	if ( dot( directionToLight, normal ) >= 0 ) {
 		vec3 shadeDiffuse = calculateDiffuse(scene_light, diffuse, normal, directionToLight);
+		vec3 fresnelSpecular = calculateFresnel(specular, normal, directionFromEye);
 		vec3 shadeSpecular = calculateSpecular(scene_light, fresnelSpecular, material_shininess, normal, directionToLight, directionFromEye);
 
 		shading += shadeDiffuse + shadeSpecular;
