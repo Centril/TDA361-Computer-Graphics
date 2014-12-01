@@ -24,7 +24,7 @@ void main()
 	// modelViewMatrix, but that doesn't compile on current drivers.
 	// Just using the modelView matrix works fine, as long as it does not
 	// contain any nonuniform scaling. 
-	mat4 normalMatrix = modelViewMatrix; //inverse(transpose(modelViewMatrix));
+	mat4 normalMatrix = inverse(transpose(modelViewMatrix));
 	///////////////////////////////////////////////////////////////////////////
 	color = vec4(colorIn,1); 
 	texCoord = texCoordIn; 
