@@ -33,7 +33,6 @@ float camera_target_altitude = 5.2;
 float3 lightPosition = {30.1f, 450.0f, 0.1f};
 
 void gfxInit() {
-
 	/* Initialize GLEW; this gives us access to OpenGL Extensions.
 	 */
 	glewInit();
@@ -54,8 +53,7 @@ void gfxInit() {
 	/* Workaround for AMD. It might no longer be necessary, but I dunno if we
 	 * are ever going to remove it. (Consider it a piece of living history.)
 	 */
-	if( !glBindFragDataLocation )
-	{
+	if( !glBindFragDataLocation ) {
 		glBindFragDataLocation = glBindFragDataLocationEXT;
 	}
 
@@ -76,23 +74,30 @@ void gfxInit() {
 	//*************************************************************************
 	// Load the models from disk
 	//*************************************************************************
-	world = new OBJModel(); 
+	world = new OBJModel();
 	world->load(SCENES "/island_blender_new.obj");
+	world->load(SCENES "/island.obj");
+
 	skybox = new OBJModel();
 	skybox->load(SCENES "/skybox.obj");
+
 	skyboxnight = new OBJModel();
 	skyboxnight->load(SCENES "/skyboxnight.obj");
+
 	// Make the textures of the skyboxes use clamp to edge to avoid seams
 	for(int i=0; i<6; i++){
 		glBindTexture(GL_TEXTURE_2D, skybox->getDiffuseTexture(i)); 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 		glBindTexture(GL_TEXTURE_2D, skyboxnight->getDiffuseTexture(i)); 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
+
 	water = new OBJModel(); 
 	water->load(SCENES "/water.obj");
+
 	car = new OBJModel(); 
 	car->load(SCENES "/car.obj");
 }
@@ -116,6 +121,7 @@ void drawModel(OBJModel *model, const float4x4 &modelMatrix) {
 void drawShadowCasters() {
 	drawModel(world, make_identity<float4x4>());
 	setUniformSlow(shaderProgram, "object_reflectiveness", 0.5f); 
+
 	drawModel(car, make_translation(make_vector(0.0f, 0.0f, 0.0f))); 
 	setUniformSlow(shaderProgram, "object_reflectiveness", 0.0f); 
 }
@@ -135,6 +141,7 @@ void drawScene(void) {
 	int w = glutGet((GLenum)GLUT_WINDOW_WIDTH);
 	int h = glutGet((GLenum)GLUT_WINDOW_HEIGHT);
 	glViewport(0, 0, w, h);								
+
 	// Use shader and set up uniforms
 	glUseProgram( shaderProgram );			
 	float3 camera_position = sphericalToCartesian(camera_theta, camera_phi, camera_r);
@@ -152,9 +159,12 @@ void drawScene(void) {
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	drawModel(skyboxnight, make_identity<float4x4>());
+
 	setUniformSlow(shaderProgram, "object_alpha", max<float>(0.0f, cosf((currentTime / 20.0f) * 2.0f * M_PI))); 
 	drawModel(skybox, make_identity<float4x4>());
+
 	setUniformSlow(shaderProgram, "object_alpha", 1.0f); 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE); 
