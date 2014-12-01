@@ -152,6 +152,17 @@ void gfxViewport( int w, int h ) {
 	glViewport( 0, 0, w, h );
 }
 
+void gfxSetupMatrices( int w, int h ) {
+	float3 camera_position = sphericalToCartesian( camera_theta, camera_phi, camera_r );
+	float3 camera_lookAt = make_vector( 0.0f, camera_target_altitude, 0.0f );
+	float3 camera_up = make_vector( 0.0f, 1.0f, 0.0f );
+	float4x4 viewMatrix = lookAt( camera_position, camera_lookAt, camera_up );
+	float4x4 projectionMatrix = perspectiveMatrix( 45.0f, float(w) / float(h), 0.1f, 1000.0f );
+	setUniformSlow( shaderProgram, "viewMatrix", viewMatrix );
+	setUniformSlow( shaderProgram, "projectionMatrix", projectionMatrix );
+	setUniformSlow( shaderProgram, "lightpos", lightPosition );	
+}
+
 void drawScene(void) {
 	glEnable(GL_DEPTH_TEST);	// enable Z-buffering 
 
@@ -167,15 +178,8 @@ void drawScene(void) {
 	gfxViewport( w, h );
 
 	// Use shader and set up uniforms
-	glUseProgram( shaderProgram );			
-	float3 camera_position = sphericalToCartesian(camera_theta, camera_phi, camera_r);
-	float3 camera_lookAt = make_vector(0.0f, camera_target_altitude, 0.0f);
-	float3 camera_up = make_vector(0.0f, 1.0f, 0.0f);
-	float4x4 viewMatrix = lookAt(camera_position, camera_lookAt, camera_up);
-	float4x4 projectionMatrix = perspectiveMatrix(45.0f, float(w) / float(h), 0.1f, 1000.0f);
-	setUniformSlow(shaderProgram, "viewMatrix", viewMatrix);
-	setUniformSlow(shaderProgram, "projectionMatrix", projectionMatrix);
-	setUniformSlow(shaderProgram, "lightpos", lightPosition); 
+	glUseProgram( shaderProgram );
+	gfxSetupMatrices( w, h );
 
 	drawModel(water, make_translation(make_vector(0.0f, -6.0f, 0.0f)));
 	drawShadowCasters();
