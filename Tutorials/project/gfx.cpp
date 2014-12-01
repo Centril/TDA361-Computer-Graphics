@@ -11,6 +11,11 @@ GLuint shaderProgram;
 const float3 up = {0.0f, 1.0f, 0.0f};
 
 //*****************************************************************************
+//	Background clear color:
+//*****************************************************************************
+const float3 clear_color = {0.2, 0.2, 0.8};
+
+//*****************************************************************************
 //	OBJ Model declarations
 //*****************************************************************************
 OBJModel *world; 
@@ -129,6 +134,24 @@ void drawShadowCasters() {
 	setUniformSlow(shaderProgram, "object_reflectiveness", 0.0f); 
 }
 
+void gfxClear() {
+	glClearColor( clear_color.x, clear_color.y, clear_color.z, 1.0 );
+	glClearDepth( 1 );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+}
+
+int gfxViewportWidth() {
+	return glutGet( (GLenum) GLUT_WINDOW_WIDTH );
+}
+
+int gfxViewportHeight() {
+	return glutGet( (GLenum) GLUT_WINDOW_HEIGHT );
+}
+
+void gfxViewport( int w, int h ) {
+	glViewport( 0, 0, w, h );
+}
+
 void drawScene(void) {
 	glEnable(GL_DEPTH_TEST);	// enable Z-buffering 
 
@@ -138,12 +161,10 @@ void drawScene(void) {
 	//*************************************************************************
 	// Render the scene from the cameras viewpoint, to the default framebuffer
 	//*************************************************************************
-	glClearColor(0.2,0.2,0.8,1.0);						
-	glClearDepth(1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-	int w = glutGet((GLenum)GLUT_WINDOW_WIDTH);
-	int h = glutGet((GLenum)GLUT_WINDOW_HEIGHT);
-	glViewport(0, 0, w, h);								
+	gfxClear();
+	int w = gfxViewportWidth();
+	int h = gfxViewportHeight();
+	gfxViewport( w, h );
 
 	// Use shader and set up uniforms
 	glUseProgram( shaderProgram );			
