@@ -78,8 +78,6 @@ void main()
 		emissive *= texture(diffuse_texture, texCoord.xy).xyz; 
 	}
 
-	//fragmentColor = vec4(diffuse + emissive, object_alpha);
-
 	vec3 normal = normalize(viewSpaceNormal);
 	vec3 directionToLight = normalize(viewSpaceLightPosition - viewSpacePosition);
 	vec3 directionFromEye = normalize(viewSpacePosition);
@@ -94,5 +92,5 @@ void main()
 					calculateSpecular(scene_light, fresnelSpecular, material_shininess, normal, directionToLight, directionFromEye) +
 					emissive;
 
-	fragmentColor = vec4( shading, 1.0 );
+	fragmentColor = vec4( shading, object_alpha );
 }
