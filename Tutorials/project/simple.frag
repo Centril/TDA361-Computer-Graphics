@@ -33,6 +33,27 @@ uniform int has_diffuse_texture;
 uniform sampler2D diffuse_texture;
 
 
+vec3 calculateAmbient(vec3 ambientLight, vec3 materialAmbient)
+{
+	return ambientLight * materialAmbient;
+}
+
+vec3 calculateDiffuse(vec3 diffuseLight, vec3 materialDiffuse, vec3 normal, vec3 directionToLight)
+{
+	return diffuseLight * materialDiffuse * max(dot(normal, directionToLight), 0);
+}
+
+vec3 calculateSpecular(vec3 specularLight, vec3 materialSpecular, float materialShininess, vec3 normal, vec3 directionToLight, vec3 directionFromEye)
+{
+	vec3 h = normalize(directionToLight - directionFromEye);
+	float normalizationFactor = ((materialShininess + 2.0) / 8.0);
+	return specularLight * materialSpecular * pow(max(dot(h, normal), 0), materialShininess) * normalizationFactor;
+}
+
+vec3 calculateFresnel(vec3 materialSpecular, vec3 normal, vec3 directionFromEye)
+{
+	return materialSpecular + (vec3(1.0) - materialSpecular) * pow(clamp(1.0 + dot(directionFromEye, normal), 0.0, 1.0), 5.0);
+}
 
 
 void main() 
