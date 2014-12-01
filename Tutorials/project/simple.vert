@@ -18,9 +18,8 @@ void main()
 {
 	mat4 modelViewMatrix = viewMatrix * modelMatrix; 
 	mat4 modelViewProjectionMatrix = projectionMatrix * modelViewMatrix; 
-	mat4 normalMatrix = inverse(transpose(modelViewMatrix));
+	mat4 normalMatrix = modelViewMatrix; //inverse(transpose(modelViewMatrix));
 
-	// OUTDATED, IT WORKS FINE ON OUR DRIVERS!
 	///////////////////////////////////////////////////////////////////////////
 	// The normal matrix should really be the inverse transpose of the 
 	// modelViewMatrix, but that doesn't compile on current drivers.
