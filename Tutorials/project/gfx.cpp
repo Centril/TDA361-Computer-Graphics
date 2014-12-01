@@ -77,7 +77,7 @@ void gfxInit() {
 	// Load the models from disk
 	//*************************************************************************
 	world = new OBJModel(); 
-	world->load(SCENES "/island.obj");
+	world->load(SCENES "/island_blender_new.obj");
 	skybox = new OBJModel();
 	skybox->load(SCENES "/skybox.obj");
 	skyboxnight = new OBJModel();
