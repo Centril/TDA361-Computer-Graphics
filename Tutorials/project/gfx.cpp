@@ -32,6 +32,11 @@ float camera_target_altitude = 5.2;
 //*****************************************************************************
 float3 lightPosition = {30.1f, 450.0f, 0.1f};
 
+void gfxClampEdge() {
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
+
 void gfxInit() {
 	/* Initialize GLEW; this gives us access to OpenGL Extensions.
 	 */
@@ -85,14 +90,12 @@ void gfxInit() {
 	skyboxnight->load(SCENES "/skyboxnight.obj");
 
 	// Make the textures of the skyboxes use clamp to edge to avoid seams
-	for(int i=0; i<6; i++){
-		glBindTexture(GL_TEXTURE_2D, skybox->getDiffuseTexture(i)); 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	for ( int i = 0; i < 6; i++ ) {
+		glBindTexture(GL_TEXTURE_2D, skybox->getDiffuseTexture(i));
+		gfxClampEdge();
 
-		glBindTexture(GL_TEXTURE_2D, skyboxnight->getDiffuseTexture(i)); 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glBindTexture(GL_TEXTURE_2D, skyboxnight->getDiffuseTexture(i));
+		gfxClampEdge();
 	}
 
 	water = new OBJModel(); 
