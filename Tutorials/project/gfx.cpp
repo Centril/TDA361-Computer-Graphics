@@ -167,7 +167,8 @@ void gfxSetupMatrices( int w, int h ) {
 	float4x4 projectionMatrix = perspectiveMatrix( 45.0f, float(w) / float(h), 0.1f, 1000.0f );
 	setUniformSlow( shaderProgram, "viewMatrix", viewMatrix );
 	setUniformSlow( shaderProgram, "projectionMatrix", projectionMatrix );
-	setUniformSlow( shaderProgram, "lightpos", lightPosition );	
+	setUniformSlow( shaderProgram, "lightpos", lightPosition );
+	setUniformSlow( shaderProgram, "inverseViewNormalMatrix", transpose( viewMatrix ) );
 }
 
 void gfxObjectAlpha( float alpha ) {

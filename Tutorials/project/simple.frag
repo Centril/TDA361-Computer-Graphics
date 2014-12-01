@@ -16,6 +16,7 @@ out vec4 fragmentColor;
 // global uniforms, that are the same for the whole scene
 uniform sampler2DShadow shadowMap;
 uniform samplerCube cubeMap; 
+uniform mat4 inverseViewNormalMatrix;
 uniform vec3 scene_ambient_light = vec3(0.05, 0.05, 0.05);
 uniform vec3 scene_light = vec3(0.6, 0.6, 0.6);
 
@@ -77,5 +78,20 @@ void main()
 		emissive *= texture(diffuse_texture, texCoord.xy).xyz; 
 	}
 
-	fragmentColor = vec4(diffuse + emissive, object_alpha);
+	//fragmentColor = vec4(diffuse + emissive, object_alpha);
+
+	vec3 normal = normalize(viewSpaceNormal);
+	vec3 directionToLight = normalize(viewSpaceLightPosition - viewSpacePosition);
+	vec3 directionFromEye = normalize(viewSpacePosition);
+
+	vec3 fresnelSpecular = calculateFresnel(specular, normal, directionFromEye);
+
+	vec3 reflectionVector = (inverseViewNormalMatrix * vec4(reflect(directionFromEye, normal), 0.0)).xyz;
+
+
+	vec3 shading =	calculateAmbient(scene_ambient_light, ambient) +
+					calculateDiffuse(scene_light, diffuse, normal, directionToLight) +
+					calculateSpecular(scene_light, fresnelSpecular, material_shininess, normal, directionToLight, directionFromEye);
+
+	fragmentColor = vec4( shading, 1.0 );
 }
