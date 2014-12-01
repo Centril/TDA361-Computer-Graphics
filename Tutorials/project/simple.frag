@@ -71,11 +71,10 @@ void main()
 	vec3 ambient = material_diffuse_color;//material_ambient_color;
 	
 	// if we have a texture we modulate all of the color properties
-	if (has_diffuse_texture == 1)
-	{
-		diffuse *= texture(diffuse_texture, texCoord.xy).xyz; 
-		ambient *= texture(diffuse_texture, texCoord.xy).xyz; 
-		emissive *= texture(diffuse_texture, texCoord.xy).xyz; 
+	if (has_diffuse_texture == 1) {
+		diffuse *= texture(diffuse_texture, texCoord.xy).xyz;
+		ambient *= texture(diffuse_texture, texCoord.xy).xyz;
+		emissive *= texture(diffuse_texture, texCoord.xy).xyz;
 	}
 
 	vec3 normal = normalize(viewSpaceNormal);
@@ -87,10 +86,16 @@ void main()
 	vec3 reflectionVector = (inverseViewNormalMatrix * vec4(reflect(directionFromEye, normal), 0.0)).xyz;
 	//vec3 envMapSample = texture(environmentMap, reflectionVector).rgb;
 
-	vec3 shading =	calculateAmbient(scene_ambient_light, ambient) +
-					calculateDiffuse(scene_light, diffuse, normal, directionToLight) +
-					calculateSpecular(scene_light, fresnelSpecular, material_shininess, normal, directionToLight, directionFromEye) +
-					emissive;
+	vec3 shadeAmbient = calculateAmbient(scene_ambient_light, ambient);
+
+	vec3 shading =	shadeAmbient + emissive;
+
+	if ( dot( directionToLight, normal ) >= 0 ) {
+		vec3 shadeDiffuse = calculateDiffuse(scene_light, diffuse, normal, directionToLight);
+		vec3 shadeSpecular = calculateSpecular(scene_light, fresnelSpecular, material_shininess, normal, directionToLight, directionFromEye);
+
+		shading += shadeDiffuse + shadeSpecular;
+	}
 
 	fragmentColor = vec4( shading, object_alpha );
 }
