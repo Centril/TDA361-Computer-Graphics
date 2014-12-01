@@ -163,15 +163,19 @@ void gfxSetupMatrices( int w, int h ) {
 	setUniformSlow( shaderProgram, "lightpos", lightPosition );	
 }
 
-void drawScene(void) {
-	glEnable(GL_DEPTH_TEST);	// enable Z-buffering 
+void gfxObjectAlpha( float alpha ) {
+	setUniformSlow( shaderProgram, "object_alpha", alpha ); 
+}
 
+void drawScene(void) {
+	// enable Z-buffering.
+	glEnable(GL_DEPTH_TEST);
 	// enable back face culling.
 	glEnable(GL_CULL_FACE);	
 
-	//*************************************************************************
-	// Render the scene from the cameras viewpoint, to the default framebuffer
-	//*************************************************************************
+	//*******************************************************************************
+	// START: Render the scene from the cameras viewpoint, to the default framebuffer
+	//*******************************************************************************
 	gfxClear();
 	int w = gfxViewportWidth();
 	int h = gfxViewportHeight();
@@ -188,15 +192,18 @@ void drawScene(void) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	drawModel(skyboxnight, make_identity<float4x4>());
+	const float4x4 modelMatrix = make_identity<float4x4>();
+	drawModel( skyboxnight, modelMatrix );
 
-	setUniformSlow(shaderProgram, "object_alpha", max<float>(0.0f, cosf((currentTime / 20.0f) * 2.0f * M_PI))); 
-	drawModel(skybox, make_identity<float4x4>());
+	gfxObjectAlpha( max<float>(0.0f, cosf((currentTime / 20.0f) * 2.0f * M_PI)) );
+	drawModel( skybox, modelMatrix );
+	//*************************************************************************
+	// END: Render.
+	//*************************************************************************
 
-	setUniformSlow(shaderProgram, "object_alpha", 1.0f); 
-	glDisable(GL_BLEND);
-	glDepthMask(GL_TRUE); 
-
+	gfxObjectAlpha( 1.0f );
+	glDisable( GL_BLEND );
+	glDepthMask( GL_TRUE );
 	glUseProgram( 0 );	
 }
 
