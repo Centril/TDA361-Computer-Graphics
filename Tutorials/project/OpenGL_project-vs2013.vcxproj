@@ -138,8 +138,8 @@
     <ClCompile Include="math.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="simple.frag" />
-    <None Include="simple.vert" />
+    <None Include="shading.frag" />
+    <None Include="shading.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gfx.h" />

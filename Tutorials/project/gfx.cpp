@@ -7,8 +7,15 @@ using namespace chag;
 //	Global variables
 //*****************************************************************************
 float currentTime = 0.0f;		// Tells us the current time.
-GLuint shaderProgram;
+GLuint shaderProgram, shadowShaderProgram;
 const float3 up = {0.0f, 1.0f, 0.0f};
+
+//*****************************************************************************
+//	Shadow map
+//*****************************************************************************
+GLuint shadowMapTexture;
+GLuint shadowMapFBO;
+const int shadowMapResolution = 2048;
 
 //*****************************************************************************
 //	Background clear color:
@@ -43,12 +50,17 @@ void gfxClampEdge() {
 }
 
 void gfxLoadShaders() {
-	shaderProgram = loadShaderProgram( "simple.vert", "simple.frag" );
+	shaderProgram = loadShaderProgram( "shading.vert", "shading.frag" );
 	glBindAttribLocation( shaderProgram, 0, "position" );
 	glBindAttribLocation( shaderProgram, 2, "texCoordIn" );
 	glBindAttribLocation( shaderProgram, 1, "normalIn" );
 	glBindFragDataLocation( shaderProgram, 0, "fragmentColor" );
 	linkShaderProgram( shaderProgram );	
+
+	shadowShaderProgram = loadShaderProgram("shadow.vert", "shadow.frag");
+	glBindAttribLocation(shadowShaderProgram, 0, "position");
+	glBindFragDataLocation(shadowShaderProgram, 0, "fragmentColor");
+	linkShaderProgram(shadowShaderProgram);
 }
 
 void gfxLoadModels() {
@@ -75,6 +87,38 @@ void gfxLoadModels() {
 
 	car = new OBJModel(); 
 	car->load( SCENES "/car.obj" );
+}
+
+void gfxInitShadowMap() {
+	// Generate and bind our shadow map texture
+	glGenTextures(1, &shadowMapTexture);
+	glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
+	// Specify the shadow map texture’s format: GL_DEPTH_COMPONENT[32] is
+	// for depth buffers/textures.
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32,
+		shadowMapResolution, shadowMapResolution, 0,
+		GL_DEPTH_COMPONENT, GL_FLOAT, 0
+		);
+	// We need to setup these; otherwise the texture is illegal as a
+	// render target.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	// Cleanup: unbind the texture again - we’re finished with it for now
+	glBindTexture(GL_TEXTURE_2D, 0);
+	// Generate and bind our shadow map frame buffer
+	glGenFramebuffers(1, &shadowMapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	// Bind the depth texture we just created to the FBO’s depth attachment
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+		GL_TEXTURE_2D, shadowMapTexture, 0);
+	// We’re rendering depth only, so make sure we’re not trying to access
+	// the color buffer by setting glDrawBuffer() and glReadBuffer() to GL_NONE
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	// Cleanup: activate the default frame buffer again
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void gfxInit() {
@@ -115,9 +159,43 @@ void gfxInit() {
 	// Load the models from disk
 	//*************************************************************************
 	gfxLoadModels();
+
+	gfxInitShadowMap();
 }
 
 void drawScene();
+
+void drawShadowCasters();
+
+void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
+{
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(2.5, 10);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glViewport(0, 0, shadowMapResolution, shadowMapResolution);
+
+	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClearDepth(1.0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+
+	// Get current shader, so we can restore it afterwards. Also, switch to
+	// the shadow shader used to draw the shadow map.
+	GLint currentProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+	glUseProgram(shadowShaderProgram);
+
+	// draw shadow casters
+	drawShadowCasters();
+
+	// Restore old shader
+	glUseProgram(currentProgram);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glDisable(GL_POLYGON_OFFSET_FILL);
+}
 
 void gfxDisplay() {
 	drawScene();
