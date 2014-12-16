@@ -140,6 +140,8 @@
   <ItemGroup>
     <None Include="shading.frag" />
     <None Include="shading.vert" />
+    <None Include="shadow.frag" />
+    <None Include="shadow.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gfx.h" />

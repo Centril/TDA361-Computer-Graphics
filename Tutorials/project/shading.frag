@@ -9,6 +9,7 @@ in vec3 viewSpacePosition;
 in vec3 viewSpaceNormal; 
 in vec3 viewSpaceLightPosition; 
 in vec4 shadowTexCoord;
+in vec4 shadowMapCoord;
 
 // output to frame buffer.
 out vec4 fragmentColor;
@@ -88,11 +89,12 @@ void main()
 	vec3 shading =	shadeAmbient + emissive;
 
 	if ( dot( directionToLight, normal ) >= 0 ) {
+		float visibility = textureProj( shadowMap, shadowMapCoord );
 		vec3 shadeDiffuse = calculateDiffuse(scene_light, diffuse, normal, directionToLight);
 		vec3 fresnelSpecular = calculateFresnel(specular, normal, directionFromEye);
 		vec3 shadeSpecular = calculateSpecular(scene_light, fresnelSpecular, material_shininess, normal, directionToLight, directionFromEye);
 
-		shading += shadeDiffuse + shadeSpecular;
+		shading += (shadeDiffuse * visibility) + (shadeSpecular * visibility);
 	}
 
 	fragmentColor = vec4( shading, object_alpha );
