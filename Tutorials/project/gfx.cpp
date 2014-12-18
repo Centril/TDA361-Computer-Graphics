@@ -106,9 +106,9 @@ void gfxInitShadowMap() {
 	// We need to setup these;
 	// otherwise the texture is illegal as a render target.
 	gfxLinear();
-	float4 zeros = { 0.0f, 0.0f, 0.0f, 0.0f };
-	gfxClampEdge();
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &zeros.x);
+	float4 ones = { 1.0f, 1.0f, 1.0f, 1.0f };
+	gfxClampBorder();
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &ones.x);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
@@ -242,8 +242,8 @@ void drawShadowCasters( const float4x4 &viewMatrix, const float4x4 &projectionMa
 }
 
 void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix) {
-//	glEnable( GL_POLYGON_OFFSET_FILL );
-//	glPolygonOffset( 2.5, 10 );
+	glEnable( GL_POLYGON_OFFSET_FILL );
+	glPolygonOffset( 2.5, 10 );
 	glBindFramebuffer( GL_FRAMEBUFFER, shadowMapFBO );
 
 	gfxViewport( shadowMapResolution, shadowMapResolution );
@@ -260,7 +260,7 @@ void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
 	gfxUseProgram(prevProgram);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-//	glDisable(GL_POLYGON_OFFSET_FILL);
+	glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
 float4x4 gfxViewMatrix() {
@@ -335,7 +335,7 @@ void drawScene(float4x4 lightViewMatrix, float4x4 lightProjMatrix) {
 
 void gfxDisplay() {
 	float4x4 lightViewMatrix = lookAt(lightPosition, make_vector(0.0f, 0.0f, 0.0f), up);
-	float4x4 lightProjMatrix = perspectiveMatrix(25.0f, 1.0, 5.0f, 100.0f);
+	float4x4 lightProjMatrix = perspectiveMatrix(25.0f, 1.0, 400.0f, 600.0f);
 	drawShadowMap(lightViewMatrix, lightProjMatrix);
 	drawScene(lightViewMatrix, lightProjMatrix);
 	glutSwapBuffers();  // swap front and back buffer. This frame will now be displayed.
