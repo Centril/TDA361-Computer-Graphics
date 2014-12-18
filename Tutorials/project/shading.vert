@@ -20,8 +20,7 @@ uniform vec3 lightpos;
 uniform mat4 lightMatrix;
 out vec4 shadowMapCoord;
 
-void main() 
-{
+void main() {
 	color = vec4(colorIn,1); 
 	texCoord = texCoordIn; 
 	viewSpacePosition = vec3(modelViewMatrix * vec4(position, 1)); 

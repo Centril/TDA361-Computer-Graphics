@@ -198,8 +198,6 @@ void drawModel( OBJModel *model, const float4x4 &modelMatrix, const float4x4 &vi
 * there is only one draw call to each of these, as this function is called twice.
 */
 void drawShadowCasters( const float4x4 &viewMatrix, const float4x4 &projectionMatrix ) {
-	GLint currentProgram = gfxCurrentProgram();
-
 	float4x4 worldMatrix = make_identity<float4x4>();
 	float4x4 carMatrix = make_translation(make_vector(0.0f, 0.0f, 0.0f));
 
