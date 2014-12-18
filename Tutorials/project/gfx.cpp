@@ -44,6 +44,18 @@ float camera_target_altitude = 5.2;
 //*****************************************************************************
 float3 lightPosition = {30.1f, 450.0f, 0.1f};
 
+GLint gfxCurrentProgram() {
+	GLint currentProgram;
+	glGetIntegerv( GL_CURRENT_PROGRAM, &currentProgram );
+	return currentProgram;
+}
+
+GLint gfxUseProgram( GLint program ) {
+	GLint current = gfxCurrentProgram();
+	glUseProgram( program );
+	return current;
+}
+
 void gfxClampEdge() {
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
@@ -134,7 +146,8 @@ void gfxInitShadowMap() {
 	glReadBuffer(GL_NONE);
 
 	// Cleanup: activate the default frame buffer again
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 void gfxInit() {
@@ -193,17 +206,15 @@ void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
 	glClearDepth(1.0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	// Get current shader, so we can restore it afterwards. Also, switch to
-	// the shadow shader used to draw the shadow map.
-	GLint currentProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-	glUseProgram(shadowShaderProgram);
-	
+	// Get current shader, so we can restore it afterwards.
+	// Also, switch to the shadow shader used to draw the shadow map.
+	GLint prevProgram = gfxUseProgram( shadowShaderProgram );
+
 	// draw shadow casters
 	drawShadowCasters();
 
 	// Restore old shader
-	glUseProgram(currentProgram);
+	gfxUseProgram(prevProgram);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glDisable(GL_POLYGON_OFFSET_FILL);
@@ -218,9 +229,7 @@ void gfxDisplay() {
 }
 
 void drawModel(OBJModel *model, const float4x4 &modelMatrix) {
-	GLint currentProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-	setUniformSlow(currentProgram, "modelMatrix", modelMatrix); 
+	setUniformSlow( gfxCurrentProgram(), "modelMatrix", modelMatrix); 
 	model->render();
 }
 
@@ -229,10 +238,11 @@ void drawModel(OBJModel *model, const float4x4 &modelMatrix) {
 * there is only one draw call to each of these, as this function is called twice.
 */
 void drawShadowCasters() {
+	GLint currentProgram = gfxCurrentProgram();
 	drawModel(world, make_identity<float4x4>());
-	setUniformSlow(shaderProgram, "object_reflectiveness", 0.5f); 
+	setUniformSlow(currentProgram, "object_reflectiveness", 0.5f); 
 	drawModel(car, make_translation(make_vector(0.0f, 0.0f, 0.0f))); 
-	setUniformSlow(shaderProgram, "object_reflectiveness", 0.0f); 
+	setUniformSlow(currentProgram, "object_reflectiveness", 0.0f); 
 }
 
 void gfxClear() {
