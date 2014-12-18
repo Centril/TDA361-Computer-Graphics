@@ -181,6 +181,7 @@ void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
 	glEnable( GL_POLYGON_OFFSET_FILL );
 	glPolygonOffset( 2.5, 10 );
 	glBindFramebuffer( GL_FRAMEBUFFER, shadowMapFBO );
+
 	gfxViewport( shadowMapResolution, shadowMapResolution );
 	gfxClear( shadow_clear_color );
 
@@ -201,7 +202,7 @@ void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
 void gfxDisplay() {
 	float4x4 lightViewMatrix = lookAt(lightPosition, make_vector(0.0f, 0.0f, 0.0f), up);
 	float4x4 lightProjMatrix = perspectiveMatrix(45.0f, 1.0, 5.0f, 100.0f);
-//	drawShadowMap(lightViewMatrix, lightProjMatrix);
+	drawShadowMap(lightViewMatrix, lightProjMatrix);
 	drawScene(lightViewMatrix, lightProjMatrix);
 	glutSwapBuffers();  // swap front and back buffer. This frame will now be displayed.
 }
@@ -211,7 +212,7 @@ void gfxDisplay() {
  * shaders, this code is factored into its own function as we use it more than
  * once (needed once for each model drawn).
  */
-void setLightingMatrices( GLuint shaderProgram, const float4x4 &viewMatrix, const float4x4 &projectionMatrix, const float4x4 &modelMatrix ) {
+void setLightingMatrices( GLuint shaderProgram, const float4x4 &modelMatrix, const float4x4 &viewMatrix, const float4x4 &projectionMatrix ) {
 	float4x4 modelViewMatrix = viewMatrix * modelMatrix;	
 	float4x4 modelViewProjectionMatrix = projectionMatrix * modelViewMatrix;
 	float4x4 normalMatrix = transpose(inverse(modelViewMatrix));
