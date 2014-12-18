@@ -26,14 +26,30 @@ void gfxTextureBind( GLenum mode, GLuint texture, GLint slot, const char* unifor
 	glBindTexture( mode, texture );
 }
 
+void gfxTextureFilter( GLenum type, GLint how ) {
+	glTexParameteri( type, GL_TEXTURE_MIN_FILTER, how );
+	glTexParameteri( type, GL_TEXTURE_MAG_FILTER, how );
+}
+
 void gfxTextureFilter( GLint how ) {
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, how );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, how );
+	gfxTextureFilter( GL_TEXTURE_2D, how );
+}
+
+void gfxClamp( GLenum type, GLint how ) {
+	glTexParameteri( type, GL_TEXTURE_WRAP_S, how );
+	glTexParameteri( type, GL_TEXTURE_WRAP_T, how );	
 }
 
 void gfxClamp( GLint how ) {
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, how );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, how );	
+	gfxClamp( GL_TEXTURE_2D, how );
+}
+
+void gfxNearest( GLenum type ) {
+	gfxTextureFilter( type, GL_NEAREST );
+}
+
+void gfxLinear( GLenum type ) {
+	gfxTextureFilter( type, GL_LINEAR );
 }
 
 void gfxNearest() {
@@ -42,6 +58,14 @@ void gfxNearest() {
 
 void gfxLinear() {
 	gfxTextureFilter( GL_LINEAR );
+}
+
+void gfxClampBorder( GLenum type ) {
+	gfxClamp( type, GL_CLAMP_TO_BORDER );
+}
+
+void gfxClampEdge( GLenum type ) {
+	gfxClamp( type, GL_CLAMP_TO_EDGE );
 }
 
 void gfxClampBorder() {
