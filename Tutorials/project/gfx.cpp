@@ -56,9 +56,17 @@ GLint gfxUseProgram( GLint program ) {
 	return current;
 }
 
+void gfxClamp( GLint how ) {
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, how );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, how );	
+}
+
+void gfxClampBorder() {
+	gfxClamp( GL_CLAMP_TO_BORDER );
+}
+
 void gfxClampEdge() {
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	gfxClamp( GL_CLAMP_TO_EDGE );
 }
 
 void gfxLoadShaders() {
@@ -117,12 +125,10 @@ void gfxInitShadowMap() {
 	// render target.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	// gfxClampEdge();
 
 	float4 zeros = { 0.0f, 0.0f, 0.0f, 0.0f };
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	gfxClampBorder();
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &zeros.x);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
@@ -147,7 +153,6 @@ void gfxInitShadowMap() {
 
 	// Cleanup: activate the default frame buffer again
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 }
 
 void gfxInit() {
