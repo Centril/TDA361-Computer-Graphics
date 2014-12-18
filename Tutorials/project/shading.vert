@@ -27,7 +27,6 @@ void main()
 	viewSpacePosition = vec3(modelViewMatrix * vec4(position, 1)); 
 	viewSpaceNormal = vec3(normalize( (normalMatrix * vec4(normalIn,0.0)).xyz ));
 	viewSpaceLightPosition = (modelViewMatrix * vec4(lightpos, 1)).xyz; 
-	vec4 worldSpacePosition = modelMatrix * vec4(position, 1); 
 	gl_Position = modelViewProjectionMatrix * vec4(position,1);
 
 	shadowMapCoord = lightMatrix * vec4(viewSpacePosition, 1.0);
