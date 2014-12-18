@@ -1,4 +1,5 @@
 #include "gfx.h"
+#include "gfxutils.h"
 
 using namespace std;
 using namespace chag;
@@ -20,7 +21,7 @@ const int shadowMapResolution = 2048;
 //*****************************************************************************
 //	Background clear color:
 //*****************************************************************************
-const float3 clear_color = {0.2, 0.2, 0.8};
+const float4 clear_color = {0.2, 0.2, 0.8, 0.0};
 
 //*****************************************************************************
 //	OBJ Model declarations
@@ -43,44 +44,6 @@ float camera_target_altitude = 5.2;
 //	Light state variables (updated in idle())
 //*****************************************************************************
 float3 lightPosition = {30.1f, 450.0f, 0.1f};
-
-GLint gfxCurrentProgram() {
-	GLint currentProgram;
-	glGetIntegerv( GL_CURRENT_PROGRAM, &currentProgram );
-	return currentProgram;
-}
-
-GLint gfxUseProgram( GLint program ) {
-	GLint current = gfxCurrentProgram();
-	glUseProgram( program );
-	return current;
-}
-
-void gfxTextureFilter( GLint how ) {
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, how );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, how );
-}
-
-void gfxClamp( GLint how ) {
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, how );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, how );	
-}
-
-void gfxNearest() {
-	gfxTextureFilter( GL_NEAREST );
-}
-
-void gfxLinear() {
-	gfxTextureFilter( GL_LINEAR );
-}
-
-void gfxClampBorder() {
-	gfxClamp( GL_CLAMP_TO_BORDER );
-}
-
-void gfxClampEdge() {
-	gfxClamp( GL_CLAMP_TO_EDGE );
-}
 
 void gfxLoadShaders() {
 	shaderProgram = loadShaderProgram( "shading.vert", "shading.frag" );
@@ -211,10 +174,9 @@ void gfxInit() {
 
 void drawScene(float4x4 lightViewMatrix, float4x4 lightProjMatrix);
 
-void drawShadowCasters();
+void drawShadowCasters( const float4x4 &viewMatrix, const float4x4 &projectionMatrix );
 
-void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
-{
+void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix) {
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(2.5, 10);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
@@ -228,7 +190,7 @@ void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
 	GLint prevProgram = gfxUseProgram( shadowShaderProgram );
 
 	// draw shadow casters
-	drawShadowCasters();
+	drawShadowCasters( viewMatrix, projectionMatrix );
 
 	// Restore old shader
 	gfxUseProgram(prevProgram);
@@ -240,13 +202,30 @@ void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix)
 void gfxDisplay() {
 	float4x4 lightViewMatrix = lookAt(lightPosition, make_vector(0.0f, 0.0f, 0.0f), up);
 	float4x4 lightProjMatrix = perspectiveMatrix(45.0f, 1.0, 5.0f, 100.0f);
-	drawShadowMap(lightViewMatrix, lightProjMatrix);
+//	drawShadowMap(lightViewMatrix, lightProjMatrix);
 	drawScene(lightViewMatrix, lightProjMatrix);
 	glutSwapBuffers();  // swap front and back buffer. This frame will now be displayed.
 }
 
-void drawModel(OBJModel *model, const float4x4 &modelMatrix) {
-	setUniformSlow( gfxCurrentProgram(), "modelMatrix", modelMatrix); 
+/**
+ * Helper function to set the matrices used for transform an lighting in our
+ * shaders, this code is factored into its own function as we use it more than
+ * once (needed once for each model drawn).
+ */
+void setLightingMatrices( GLuint shaderProgram, const float4x4 &viewMatrix, const float4x4 &projectionMatrix, const float4x4 &modelMatrix ) {
+	float4x4 modelViewMatrix = viewMatrix * modelMatrix;	
+	float4x4 modelViewProjectionMatrix = projectionMatrix * modelViewMatrix;
+	float4x4 normalMatrix = transpose(inverse(modelViewMatrix));
+
+	// Update the matrices used in the vertex shader
+	setUniformSlow(shaderProgram, "modelMatrix", modelMatrix );
+	setUniformSlow(shaderProgram, "modelViewMatrix", modelViewMatrix);
+	setUniformSlow(shaderProgram, "modelViewProjectionMatrix", modelViewProjectionMatrix);
+	setUniformSlow(shaderProgram, "normalMatrix", normalMatrix);
+}
+
+void drawModel( OBJModel *model, const float4x4 &modelMatrix, const float4x4 &viewMatrix, const float4x4 &projectionMatrix ) {
+	setLightingMatrices( gfxCurrentProgram(), modelMatrix, viewMatrix, projectionMatrix );
 	model->render();
 }
 
@@ -254,50 +233,33 @@ void drawModel(OBJModel *model, const float4x4 &modelMatrix) {
 * In this function, add all scene elements that should cast shadow, that way
 * there is only one draw call to each of these, as this function is called twice.
 */
-void drawShadowCasters() {
+void drawShadowCasters( const float4x4 &viewMatrix, const float4x4 &projectionMatrix ) {
 	GLint currentProgram = gfxCurrentProgram();
-	drawModel(world, make_identity<float4x4>());
-	setUniformSlow(currentProgram, "object_reflectiveness", 0.5f); 
-	drawModel(car, make_translation(make_vector(0.0f, 0.0f, 0.0f))); 
+
+	float4x4 worldMatrix = make_identity<float4x4>();
+	float4x4 carMatrix = make_translation(make_vector(0.0f, 0.0f, 0.0f));
+
+	drawModel(world, worldMatrix, viewMatrix, projectionMatrix );
+	setUniformSlow(currentProgram, "object_reflectiveness", 0.5f);
+
+	drawModel(car, carMatrix, viewMatrix, projectionMatrix );
 	setUniformSlow(currentProgram, "object_reflectiveness", 0.0f); 
 }
 
-void gfxClear() {
-	glClearColor( clear_color.x, clear_color.y, clear_color.z, 1.0 );
-	glClearDepth( 1 );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-}
-
-int gfxViewportWidth() {
-	return glutGet( (GLenum) GLUT_WINDOW_WIDTH );
-}
-
-int gfxViewportHeight() {
-	return glutGet( (GLenum) GLUT_WINDOW_HEIGHT );
-}
-
-void gfxViewport( int w, int h ) {
-	glViewport( 0, 0, w, h );
-}
-
-void gfxSetupMatrices( int w, int h, float4x4 lightProjectionMatrix, float4x4 lightViewMatrix) {
+float4x4 gfxViewMatrix() {
 	float3 camera_position = sphericalToCartesian( camera_theta, camera_phi, camera_r );
 	float3 camera_lookAt = make_vector( 0.0f, camera_target_altitude, 0.0f );
 	float3 camera_up = make_vector( 0.0f, 1.0f, 0.0f );
 	float4x4 viewMatrix = lookAt( camera_position, camera_lookAt, camera_up );
-	float4x4 projectionMatrix = perspectiveMatrix( 45.0f, float(w) / float(h), 0.1f, 1000.0f );
-	
-	float4x4 lightMatrix = make_translation(make_vector(0.5f, 0.5f, 0.5f)) *
+	return viewMatrix;	
+}
+
+float4x4 gfxLightMatrix( float4x4& lightProjectionMatrix, float4x4& lightViewMatrix, float4x4& viewMatrix ) {
+	return make_translation(make_vector(0.5f, 0.5f, 0.5f)) *
 		make_scale<float4x4, float>(0.5) *
 		lightProjectionMatrix *
 		lightViewMatrix *
 		inverse(viewMatrix);
-	
-	setUniformSlow( shaderProgram, "viewMatrix", viewMatrix );
-	setUniformSlow( shaderProgram, "projectionMatrix", projectionMatrix );
-	setUniformSlow( shaderProgram, "lightpos", lightPosition );
-	setUniformSlow( shaderProgram, "inverseViewNormalMatrix", transpose( viewMatrix ) );
-	setUniformSlow( shaderProgram, "lightMatrix", lightMatrix );
 }
 
 void gfxObjectAlpha( float alpha ) {
@@ -313,31 +275,40 @@ void drawScene(float4x4 lightViewMatrix, float4x4 lightProjMatrix) {
 	//*******************************************************************************
 	// START: Render the scene from the cameras viewpoint, to the default framebuffer
 	//*******************************************************************************
-	gfxClear();
+	gfxClear( clear_color );
 	int w = gfxViewportWidth();
 	int h = gfxViewportHeight();
 	gfxViewport( w, h );
 
 	// Use shader and set up uniforms
 	glUseProgram( shaderProgram );
-	gfxSetupMatrices( w, h, lightViewMatrix, lightProjMatrix );
+
+	// Setup our matrices:
+	float4x4 viewMatrix = gfxViewMatrix();
+	float4x4 projectionMatrix = perspectiveMatrix( 45.0f, float(w) / float(h), 0.1f, 1000.0f );
+	float4x4 lightMatrix = gfxLightMatrix( lightProjMatrix, lightViewMatrix, viewMatrix );
+	setUniformSlow( shaderProgram, "lightpos", lightPosition );
+	setUniformSlow( shaderProgram, "inverseViewNormalMatrix", transpose( viewMatrix ) );
+	setUniformSlow( shaderProgram, "lightMatrix", lightMatrix );
+
 	// Shadow map texture:
 	setUniformSlow(shaderProgram, "shadowMap", 1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
 
-	drawModel(water, make_translation(make_vector(0.0f, -6.0f, 0.0f)));
-	drawShadowCasters();
+	float4x4 waterModelMatrix = make_translation(make_vector(0.0f, -6.0f, 0.0f));
+	drawModel(water, waterModelMatrix, viewMatrix, projectionMatrix );
+	drawShadowCasters( viewMatrix, projectionMatrix );
 
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	const float4x4 modelMatrix = make_identity<float4x4>();
-	drawModel( skyboxnight, modelMatrix );
+	drawModel( skyboxnight, modelMatrix, viewMatrix, projectionMatrix );
 
 	gfxObjectAlpha( max<float>(0.0f, cosf((currentTime / 20.0f) * 2.0f * M_PI)) );
-	drawModel( skybox, modelMatrix );
+	drawModel( skybox, modelMatrix, viewMatrix, projectionMatrix );
 	//*************************************************************************
 	// END: Render.
 	//*************************************************************************
