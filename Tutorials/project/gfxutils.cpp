@@ -12,6 +12,20 @@ GLint gfxUseProgram( GLint program ) {
 	return current;
 }
 
+void gfxTextureCMBind( GLuint texture, GLint slot, const char* uniform ) {
+	gfxTextureBind( GL_TEXTURE_CUBE_MAP, texture, slot, uniform );
+}
+
+void gfxTexture2DBind( GLuint texture, GLint slot, const char* uniform ) {
+	gfxTextureBind( GL_TEXTURE_2D, texture, slot, uniform );
+}
+
+void gfxTextureBind( GLenum mode, GLuint texture, GLint slot, const char* uniform ) {
+	setUniformSlow( gfxCurrentProgram(), uniform, slot );
+	glActiveTexture( GL_TEXTURE0 + slot );
+	glBindTexture( mode, texture );
+}
+
 void gfxTextureFilter( GLint how ) {
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, how );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, how );

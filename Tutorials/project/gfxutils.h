@@ -20,6 +20,10 @@
 GLint gfxCurrentProgram();
 GLint gfxUseProgram( GLint program );
 
+void gfxTextureCMBind( GLuint texture, GLint slot, const char* uniform );
+void gfxTexture2DBind( GLuint texture, GLint slot, const char* uniform );
+void gfxTextureBind( GLenum mode, GLuint texture, GLint slot, const char* uniform );
+
 void gfxTextureFilter( GLint how );
 void gfxClamp( GLint how );
 void gfxNearest();

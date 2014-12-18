@@ -135,9 +135,7 @@ void gfxInitShadowMap() {
 }
 
 void gfxBindShadowMap() {
-	setUniformSlow(shaderProgram, "shadowMap", 1);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
+	gfxTexture2DBind( shadowMapTexture, 1, "shadowMap" );
 }
 
 void gfxLoadCubeMap() {
@@ -162,8 +160,7 @@ void gfxLoadCubeMap() {
 }
 
 void gfxBindCubeMap() {
-	glActiveTexture( GL_TEXTURE2 );
-	glBindTexture( GL_TEXTURE_CUBE_MAP, cubeMapTexture );
+	gfxTextureCMBind( cubeMapTexture, 2, "cubeMap" );
 }
 
 void gfxInit() {
