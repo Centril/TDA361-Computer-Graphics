@@ -22,6 +22,7 @@ const int shadowMapResolution = 2048;
 //	Background clear color:
 //*****************************************************************************
 const float4 clear_color = {0.2, 0.2, 0.8, 0.0};
+const float4 shadow_clear_color = {1.0, 1.0, 1.0, 1.0};
 
 //*****************************************************************************
 //	OBJ Model declarations
@@ -177,13 +178,11 @@ void drawScene(float4x4 lightViewMatrix, float4x4 lightProjMatrix);
 void drawShadowCasters( const float4x4 &viewMatrix, const float4x4 &projectionMatrix );
 
 void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix) {
-	glEnable(GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset(2.5, 10);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-	glViewport(0, 0, shadowMapResolution, shadowMapResolution);
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glClearDepth(1.0);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glEnable( GL_POLYGON_OFFSET_FILL );
+	glPolygonOffset( 2.5, 10 );
+	glBindFramebuffer( GL_FRAMEBUFFER, shadowMapFBO );
+	gfxViewport( shadowMapResolution, shadowMapResolution );
+	gfxClear( shadow_clear_color );
 
 	// Get current shader, so we can restore it afterwards.
 	// Also, switch to the shadow shader used to draw the shadow map.
