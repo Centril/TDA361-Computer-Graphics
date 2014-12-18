@@ -56,9 +56,22 @@ GLint gfxUseProgram( GLint program ) {
 	return current;
 }
 
+void gfxTextureFilter( GLint how ) {
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, how );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, how );
+}
+
 void gfxClamp( GLint how ) {
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, how );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, how );	
+}
+
+void gfxNearest() {
+	gfxTextureFilter( GL_NEAREST );
+}
+
+void gfxLinear() {
+	gfxTextureFilter( GL_LINEAR );
 }
 
 void gfxClampBorder() {
@@ -121,10 +134,9 @@ void gfxInitShadowMap() {
 		GL_DEPTH_COMPONENT, GL_FLOAT, 0
 		);
 
-	// We need to setup these; otherwise the texture is illegal as a
-	// render target.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// We need to setup these;
+	// otherwise the texture is illegal as a render target.
+	gfxNearest();
 	// gfxClampEdge();
 
 	float4 zeros = { 0.0f, 0.0f, 0.0f, 0.0f };
