@@ -5,6 +5,12 @@ using namespace std;
 using namespace chag;
 
 //*****************************************************************************
+//	Common variables:
+//*****************************************************************************
+float4 ones = { 1.0f, 1.0f, 1.0f, 1.0f };
+float4 zeros = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+//*****************************************************************************
 //	Global variables
 //*****************************************************************************
 float currentTime = 0.0f;		// Tells us the current time.
@@ -26,8 +32,8 @@ GLuint cubeMapTexture;
 //*****************************************************************************
 //	Background clear color:
 //*****************************************************************************
-const float4 clear_color = {0.2, 0.2, 0.8, 0.0};
-const float4 shadow_clear_color = {1.0, 1.0, 1.0, 1.0};
+const float4 clear_color = zeros;
+const float4 shadow_clear_color = ones;
 
 //*****************************************************************************
 //	OBJ Model declarations
@@ -106,7 +112,6 @@ void gfxInitShadowMap() {
 	// We need to setup these;
 	// otherwise the texture is illegal as a render target.
 	gfxLinear();
-	float4 ones = { 1.0f, 1.0f, 1.0f, 1.0f };
 	gfxClampBorder();
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &ones.x);
 
