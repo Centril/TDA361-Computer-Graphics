@@ -27,6 +27,9 @@ void gfxLinear();
 void gfxClampBorder();
 void gfxClampEdge();
 
+void gfxObjectAlpha( float alpha );
+void gfxObjectReflectiveness( float v );
+
 void gfxClear( float4 color );
 
 int gfxViewportWidth();

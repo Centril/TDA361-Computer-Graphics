@@ -38,6 +38,14 @@ void gfxClampEdge() {
 	gfxClamp( GL_CLAMP_TO_EDGE );
 }
 
+void gfxObjectAlpha( float alpha ) {
+	setUniformSlow( gfxCurrentProgram(), "object_alpha", alpha ); 
+}
+
+void gfxObjectReflectiveness( float v ) {
+	setUniformSlow( gfxCurrentProgram(), "object_reflectiveness", v );
+}
+
 void gfxClear( float4 color ) {
 	glClearColor( color.x, color.y, color.z, color.w );
 	glClearDepth( 1 );

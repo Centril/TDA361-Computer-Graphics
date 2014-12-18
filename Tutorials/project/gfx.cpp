@@ -101,10 +101,8 @@ void gfxInitShadowMap() {
 	// We need to setup these;
 	// otherwise the texture is illegal as a render target.
 	gfxNearest();
-	// gfxClampEdge();
-
 	float4 zeros = { 0.0f, 0.0f, 0.0f, 0.0f };
-	gfxClampBorder();
+	gfxClampEdge();
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &zeros.x);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
@@ -173,40 +171,6 @@ void gfxInit() {
 	gfxInitShadowMap();
 }
 
-void drawScene(float4x4 lightViewMatrix, float4x4 lightProjMatrix);
-
-void drawShadowCasters( const float4x4 &viewMatrix, const float4x4 &projectionMatrix );
-
-void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix) {
-	glEnable( GL_POLYGON_OFFSET_FILL );
-	glPolygonOffset( 2.5, 10 );
-	glBindFramebuffer( GL_FRAMEBUFFER, shadowMapFBO );
-
-	gfxViewport( shadowMapResolution, shadowMapResolution );
-	gfxClear( shadow_clear_color );
-
-	// Get current shader, so we can restore it afterwards.
-	// Also, switch to the shadow shader used to draw the shadow map.
-	GLint prevProgram = gfxUseProgram( shadowShaderProgram );
-
-	// draw shadow casters
-	drawShadowCasters( viewMatrix, projectionMatrix );
-
-	// Restore old shader
-	gfxUseProgram(prevProgram);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glDisable(GL_POLYGON_OFFSET_FILL);
-}
-
-void gfxDisplay() {
-	float4x4 lightViewMatrix = lookAt(lightPosition, make_vector(0.0f, 0.0f, 0.0f), up);
-	float4x4 lightProjMatrix = perspectiveMatrix(45.0f, 1.0, 5.0f, 100.0f);
-	drawShadowMap(lightViewMatrix, lightProjMatrix);
-	drawScene(lightViewMatrix, lightProjMatrix);
-	glutSwapBuffers();  // swap front and back buffer. This frame will now be displayed.
-}
-
 /**
  * Helper function to set the matrices used for transform an lighting in our
  * shaders, this code is factored into its own function as we use it more than
@@ -240,10 +204,32 @@ void drawShadowCasters( const float4x4 &viewMatrix, const float4x4 &projectionMa
 	float4x4 carMatrix = make_translation(make_vector(0.0f, 0.0f, 0.0f));
 
 	drawModel(world, worldMatrix, viewMatrix, projectionMatrix );
-	setUniformSlow(currentProgram, "object_reflectiveness", 0.5f);
+	gfxObjectReflectiveness( 0.5f );
 
 	drawModel(car, carMatrix, viewMatrix, projectionMatrix );
-	setUniformSlow(currentProgram, "object_reflectiveness", 0.0f); 
+	gfxObjectReflectiveness( 0.0f );
+}
+
+void drawShadowMap(const float4x4 &viewMatrix, const float4x4 &projectionMatrix) {
+	glEnable( GL_POLYGON_OFFSET_FILL );
+	glPolygonOffset( 2.5, 10 );
+	glBindFramebuffer( GL_FRAMEBUFFER, shadowMapFBO );
+
+	gfxViewport( shadowMapResolution, shadowMapResolution );
+	gfxClear( shadow_clear_color );
+
+	// Get current shader, so we can restore it afterwards.
+	// Also, switch to the shadow shader used to draw the shadow map.
+	GLint prevProgram = gfxUseProgram( shadowShaderProgram );
+
+	// draw shadow casters
+	drawShadowCasters( viewMatrix, projectionMatrix );
+
+	// Restore old shader
+	gfxUseProgram(prevProgram);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
 float4x4 gfxViewMatrix() {
@@ -260,10 +246,6 @@ float4x4 gfxLightMatrix( float4x4& lightProjectionMatrix, float4x4& lightViewMat
 		lightProjectionMatrix *
 		lightViewMatrix *
 		inverse(viewMatrix);
-}
-
-void gfxObjectAlpha( float alpha ) {
-	setUniformSlow( shaderProgram, "object_alpha", alpha ); 
 }
 
 void drawScene(float4x4 lightViewMatrix, float4x4 lightProjMatrix) {
@@ -317,6 +299,14 @@ void drawScene(float4x4 lightViewMatrix, float4x4 lightProjMatrix) {
 	glDisable( GL_BLEND );
 	glDepthMask( GL_TRUE );
 	glUseProgram( 0 );	
+}
+
+void gfxDisplay() {
+	float4x4 lightViewMatrix = lookAt(lightPosition, make_vector(0.0f, 0.0f, 0.0f), up);
+	float4x4 lightProjMatrix = perspectiveMatrix(45.0f, 1.0, 5.0f, 100.0f);
+	drawShadowMap(lightViewMatrix, lightProjMatrix);
+	drawScene(lightViewMatrix, lightProjMatrix);
+	glutSwapBuffers();  // swap front and back buffer. This frame will now be displayed.
 }
 
 void gfxCurrentTime( float currtime ) {
