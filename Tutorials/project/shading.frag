@@ -15,7 +15,7 @@ out vec4 fragmentColor;
 
 // global uniforms, that are the same for the whole scene
 uniform sampler2DShadow shadowMap;
-uniform samplerCube cubeMap; 
+uniform samplerCube cubeMap;
 uniform mat4 inverseViewNormalMatrix;
 uniform vec3 scene_ambient_light = vec3(0.05, 0.05, 0.05);
 uniform vec3 scene_light = vec3(0.6, 0.6, 0.6);
@@ -75,7 +75,6 @@ void main() {
 	vec3 directionFromEye = normalize(viewSpacePosition);
 
 	vec3 reflectionVector = (inverseViewNormalMatrix * vec4(reflect(directionFromEye, normal), 0.0)).xyz;
-	//vec3 envMapSample = texture(environmentMap, reflectionVector).rgb;
 
 	vec3 shadeAmbient = calculateAmbient(scene_ambient_light, ambient);
 	vec3 shading =	shadeAmbient + emissive;
@@ -85,6 +84,11 @@ void main() {
 		vec3 shadeDiffuse = calculateDiffuse(scene_light, diffuse, normal, directionToLight);
 		vec3 fresnelSpecular = calculateFresnel(specular, normal, directionFromEye);
 		vec3 shadeSpecular = calculateSpecular(scene_light, fresnelSpecular, material_shininess, normal, directionToLight, directionFromEye);
+
+		if ( object_reflectiveness > 0.0 ) {
+			vec3 cubeMapSample = texture(cubeMap, reflectionVector).rgb;
+			shadeSpecular *= cubeMapSample;
+		}
 
 		shading += visibility * (shadeDiffuse + shadeSpecular);
 	}

@@ -19,6 +19,11 @@ GLuint shadowMapFBO;
 const int shadowMapResolution = 2048;
 
 //*****************************************************************************
+//	Shadow map
+//*****************************************************************************
+GLuint cubeMapTexture;
+
+//*****************************************************************************
 //	Background clear color:
 //*****************************************************************************
 const float4 clear_color = {0.2, 0.2, 0.8, 0.0};
@@ -129,6 +134,38 @@ void gfxInitShadowMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void gfxBindShadowMap() {
+	setUniformSlow(shaderProgram, "shadowMap", 1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
+}
+
+void gfxLoadCubeMap() {
+	// Construct array of cube map side files.
+	string base = SCENES "/../project/cube";
+	string ext = ".png";
+
+	const char* sides[6];
+	for ( int i = 0; i < 6; ++i ) {
+		string file = base + to_string( i ) + ext;
+		sides[i] = file.c_str();
+	}
+
+	// Load the files.
+	cubeMapTexture = loadCubeMap(
+		sides[0], sides[1], sides[2],
+		sides[3], sides[4], sides[5] );
+
+	glUseProgram( shaderProgram );
+	setUniformSlow( shaderProgram, "cubeMap", 2 );
+	glUseProgram( 0 );
+}
+
+void gfxBindCubeMap() {
+	glActiveTexture( GL_TEXTURE2 );
+	glBindTexture( GL_TEXTURE_CUBE_MAP, cubeMapTexture );
+}
+
 void gfxInit() {
 	/* Initialize GLEW; this gives us access to OpenGL Extensions.
 	 */
@@ -154,21 +191,17 @@ void gfxInit() {
 		glBindFragDataLocation = glBindFragDataLocationEXT;
 	}
 
-	/* As a general rule, you shouldn't need to change anything before this 
-	 * comment in initGL().
-	 */
-
-	//*************************************************************************
-	//	Load shaders
-	//*************************************************************************
+	// Load shaders
 	gfxLoadShaders();
 
-	//*************************************************************************
-	// Load the models from disk
-	//*************************************************************************
+	// Load the models from disk.
 	gfxLoadModels();
 
+	// Initialize shadow map.
 	gfxInitShadowMap();
+
+	// Load cube map.
+	gfxLoadCubeMap();
 }
 
 /**
@@ -272,9 +305,10 @@ void drawScene(float4x4 lightViewMatrix, float4x4 lightProjMatrix) {
 	setUniformSlow( shaderProgram, "lightMatrix", lightMatrix );
 
 	// Shadow map texture:
-	setUniformSlow(shaderProgram, "shadowMap", 1);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
+	gfxBindShadowMap();
+
+	// Cube map:
+	gfxBindCubeMap();
 
 	float4x4 waterModelMatrix = make_translation(make_vector(0.0f, -6.0f, 0.0f));
 	drawModel(water, waterModelMatrix, viewMatrix, projectionMatrix );
