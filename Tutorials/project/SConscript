@@ -1,6 +1,6 @@
 # SConscript - build project under Linux
 
-SOURCE = "main.cpp gfx.cpp math.cpp";
+SOURCE = "main.cpp gfx.cpp math.cpp gfxutils.cpp";
 TARGET = "project"
 
 SHADERS = Glob( "*.frag" ) + Glob( "*.vert" );
